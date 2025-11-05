@@ -18,7 +18,7 @@ Site (Hospital)
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/organization/ \
+    curl -X POST {API_URL}/v4.3.0/organization/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Organization",
@@ -32,9 +32,9 @@ Site (Hospital)
     ```python
     import requests
     
-    BASE_URL = "http://localhost:8000/v4.3.0"
+    BASE_URL = "{API_URL}"
     
-    site = requests.post(f"{BASE_URL}/organization/", json={
+    site = requests.post(f"{BASE_URL}/v4.3.0/organization/", json={
         "resourceType": "Organization",
         "identifier": [{"value": "CHU_PARIS"}],
         "type": [{"coding": [{"code": "site"}]}],
@@ -50,7 +50,7 @@ Site (Hospital)
 === "Python"
     ```python
     # Cardiology Department
-    cardio = requests.post(f"{BASE_URL}/organization/", json={
+    cardio = requests.post(f"{BASE_URL}/v4.3.0/organization/", json={
         "resourceType": "Organization",
         "identifier": [{"value": "CARDIO"}],
         "type": [{"coding": [{"code": "department"}]}],
@@ -60,7 +60,7 @@ Site (Hospital)
     cardio_id = cardio["id"]
     
     # Neurology Department
-    neuro = requests.post(f"{BASE_URL}/organization/", json={
+    neuro = requests.post(f"{BASE_URL}/v4.3.0/organization/", json={
         "resourceType": "Organization",
         "identifier": [{"value": "NEURO"}],
         "type": [{"coding": [{"code": "department"}]}],
@@ -82,7 +82,7 @@ Site (Hospital)
     # Cardiology Units
     units_cardio = []
     for name in ["Unit A - Intensive Care", "Unit B - Hospitalization", "Unit C - Day Hospital"]:
-        unit = requests.post(f"{BASE_URL}/organization/", json={
+        unit = requests.post(f"{BASE_URL}/v4.3.0/organization/", json={
             "resourceType": "Organization",
             "identifier": [{"value": f"CARDIO_{name[5]}"}],
             "type": [{"coding": [{"code": "unit"}]}],
@@ -95,7 +95,7 @@ Site (Hospital)
     # Neurology Units
     units_neuro = []
     for name in ["Stroke Unit", "Epilepsy Unit"]:
-        unit = requests.post(f"{BASE_URL}/organization/", json={
+        unit = requests.post(f"{BASE_URL}/v4.3.0/organization/", json={
             "resourceType": "Organization",
             "identifier": [{"value": f"NEURO_{name.split()[0].upper()}"}],
             "type": [{"coding": [{"code": "unit"}]}],
@@ -115,7 +115,7 @@ Site (Hospital)
     ```python
     def print_hierarchy(org_id, level=0):
         """Display organization hierarchy recursively."""
-        org = requests.get(f"{BASE_URL}/organization/{org_id}/").json()
+        org = requests.get(f"{BASE_URL}/v4.3.0/organization/{org_id}/").json()
         
         indent = "  " * level
         type_code = org["type"][0]["coding"][0]["code"]
@@ -133,7 +133,7 @@ Site (Hospital)
         print_hierarchy(dept_id, level=1)
         
         # Display department units
-        dept = requests.get(f"{BASE_URL}/organization/{dept_id}/").json()
+        dept = requests.get(f"{BASE_URL}/v4.3.0/organization/{dept_id}/").json()
         # Note: The API does not automatically return children,
         # you will need to retrieve them via your local variables
     ```
@@ -148,7 +148,7 @@ Site (Hospital)
         current_id = org_id
         
         while current_id:
-            org = requests.get(f"{BASE_URL}/organization/{current_id}/").json()
+            org = requests.get(f"{BASE_URL}/v4.3.0/organization/{current_id}/").json()
             chain.append({
                 "id": org["id"],
                 "name": org["name"],
@@ -186,7 +186,7 @@ Site (Hospital)
 ```python
 import requests
 
-BASE_URL = "http://localhost:8000/v4.3.0"
+BASE_URL = "{API_URL}"
 
 def create_organization(code, org_type, name, parent_id=None):
     """Create an organization with validation."""
@@ -200,7 +200,7 @@ def create_organization(code, org_type, name, parent_id=None):
     if parent_id:
         data["partOf"] = {"reference": f"Organization/{parent_id}"}
     
-    response = requests.post(f"{BASE_URL}/organization/", json=data)
+    response = requests.post(f"{BASE_URL}/v4.3.0/organization/", json=data)
     org = response.json()
     
     if response.status_code == 201:
@@ -258,7 +258,7 @@ unit = create_organization("CARDIO_A", "unit", "Cardiology - Unit A", dept["id"]
 
 ```python
 # Change department name
-cardio_updated = requests.put(f"{BASE_URL}/organization/{cardio_id}/", json={
+cardio_updated = requests.put(f"{BASE_URL}/v4.3.0/organization/{cardio_id}/", json={
     "resourceType": "Organization",
     "identifier": [{"value": "CARDIO"}],
     "type": [{"coding": [{"code": "department"}]}],

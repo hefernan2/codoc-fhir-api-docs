@@ -31,34 +31,42 @@ This resource filters on `thesaurus_code = "Acte"` (configurable via `THESAURUS_
 
 ## Field Structure
 
-| FHIR Field | Type | Required | Description |
-|------------|------|----------|-------------|
-| `status` | code | ✅ Yes | preparation, in-progress, completed, stopped |
-| `code` | CodeableConcept | ✅ Yes | Act type (CCAM, etc.) |
-| `subject` | Reference | ✅ Yes | Related patient |
-| `encounter` | Reference | No | Associated stay |
-| `performedDateTime` | dateTime | No | Date/time performed |
-| `performedPeriod` | Period | No | Performance period |
+| FHIR Field | Type | Required | Codoc Mapping | Source |
+|------------|------|----------|---------------|--------|
+| `id` | string | ✅ Yes | Data.pk | Auto-generated |
+| `identifier[]` | Identifier[] | ✅ Yes | Data.pk (official), Data.id_source (usual) | Auto-generated |
+| `status` | code | ✅ Yes | Fixed to "unknown" | Hardcoded |
+| `code` | CodeableConcept | ✅ Yes | ThesaurusData (concept_code + concept_str) | Required in request |
+| `subject` | Reference | ✅ Yes | Patient/{id} | Required in request |
+| `encounter` | Reference | ❌ No | Encounter/{stay.id} | Optional in request |
+| `performer[]` | ProcedurePerformer[] | ❌ No | Organization/{type}-{id} | Optional in request |
+| `performer[].actor` | Reference | ❌ No | Department or Unit | Via performer |
+| `performer[].function` | CodeableConcept | ❌ No | "department" or "unit" | Auto-determined |
+| `performedDateTime` | dateTime | ✅ Yes | Data.start_date | Required in request |
 
 ## Create a Medical Act
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/procedure/ \
+    curl -X POST {API_URL}/v4.3.0/procedure/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Procedure",
         "status": "completed",
         "code": {
           "coding": [{
-            "system": "http://codoc.com/fhir/codesystem/Acte",
-            "code": "EBQH001",
-            "display": "Laparoscopic appendectomy"
+            "code": "COLO001",
+            "display": "Colonoscopy"
           }]
         },
-        "subject": {"reference": "Patient/123"},
-        "encounter": {"reference": "Encounter/789"},
-        "performedDateTime": "2024-01-15T14:00:00Z"
+        "subject": {"reference": "Patient/1"},
+        "encounter": {"reference": "Encounter/1"},
+        "performedDateTime": "2024-01-15T14:00:00Z",
+        "performer": [
+          {
+            "actor": {"reference": "Organization/department-1"}
+          }
+        ]
       }'
     ```
 
@@ -68,58 +76,23 @@ This resource filters on `thesaurus_code = "Acte"` (configurable via `THESAURUS_
         "resourceType": "Procedure",
         "status": "completed",
         "code": {
-            "coding": [{
-                "system": "http://codoc.com/fhir/codesystem/Acte",
-                "code": "EBQH001",
-                "display": "Laparoscopic appendectomy"
-            }]
+          "coding": [{
+            "code": "COLO001",
+            "display": "Colonoscopy"
+          }]
         },
-        "subject": {"reference": "Patient/123"},
-        "encounter": {"reference": "Encounter/789"},
-        "performedDateTime": "2024-01-15T14:00:00Z"
+        "subject": {"reference": "Patient/1"},
+        "encounter": {"reference": "Encounter/1"},
+        "performedDateTime": "2024-01-15T14:00:00Z",
+        "performer": [
+          {
+            "actor": {"reference": "Organization/department-1"}
+          }
+        ]
     }
     
-    response = requests.post("http://localhost:8000/v4.3.0/procedure/", json=procedure)
+    response = requests.post("{API_URL}/v4.3.0/procedure/", json=procedure)
     ```
-
-## Status Codes
-
-| Code | Description |
-|------|-------------|
-| `preparation` | In preparation |
-| `in-progress` | In progress |
-| `not-done` | Not performed |
-| `on-hold` | On hold |
-| `stopped` | Stopped |
-| `completed` | Completed |
-| `entered-in-error` | Data entry error |
-
-## Use Cases
-
-### Surgical Act
-
-```json
-{
-  "status": "completed",
-  "code": {"coding": [{"code": "HBQK004", "display": "Coronary angiography"}]},
-  "subject": {"reference": "Patient/123"},
-  "performedDateTime": "2024-01-15T09:00:00Z"
-}
-```
-
-### Act Over a Period
-
-```json
-{
-  "status": "completed",
-  "code": {"coding": [{"code": "YYYY123", "display": "Radiotherapy"}]},
-  "subject": {"reference": "Patient/123"},
-  "performedPeriod": {
-    "start": "2024-01-10T00:00:00Z",
-    "end": "2024-02-15T00:00:00Z"
-  }
-}
-```
 
 ## Related Resources
 

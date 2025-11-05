@@ -12,8 +12,7 @@ This guide shows you how to make your first FHIR API call in less than 5 minutes
 
 ## Prerequisites
 
-- ✅ Codoc FHIR API installed and started ([see Installation](installation.md))
-- ✅ Server accessible at `http://localhost:8000`
+- ✅ Codoc FHIR API installed and started
 - ✅ HTTP client installed (curl, Postman, or HTTP library)
 
 ## 1. Verify the Connection
@@ -22,21 +21,21 @@ Start by verifying that the API responds:
 
 === "curl"
     ```bash
-    curl http://localhost:8000/v4.3.0/metadata/
+    curl {API_URL}/v4.3.0/metadata/
     ```
 
 === "Python"
     ```python
     import requests
     
-    response = requests.get("http://localhost:8000/v4.3.0/metadata/")
+    response = requests.get("{API_URL}/v4.3.0/metadata/")
     print(response.status_code)  # Should display 200
     print(response.json()["resourceType"])  # "CapabilityStatement"
     ```
 
 === "JavaScript"
     ```javascript
-    fetch("http://localhost:8000/v4.3.0/metadata/")
+    fetch("{API_URL}/v4.3.0/metadata/")
       .then(response => response.json())
       .then(data => {
         console.log(data.resourceType);  // "CapabilityStatement"
@@ -52,13 +51,13 @@ Let's create your first FHIR patient:
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/Patient/ \
+    curl -X POST {API_URL}/v4.3.0/patient/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Patient",
         "identifier": [
           {
-            "system": "http://codoc.com/fhir/patient/nip",
+            "use": "usual",
             "value": "123456789"
           }
         ],
@@ -80,7 +79,7 @@ Let's create your first FHIR patient:
     patient = {
         "resourceType": "Patient",
         "identifier": [{
-            "system": "http://codoc.com/fhir/patient/nip",
+            "use": "usual",
             "value": "123456789"
         }],
         "name": [{
@@ -92,7 +91,7 @@ Let's create your first FHIR patient:
     }
     
     response = requests.post(
-        "http://localhost:8000/v4.3.0/Patient/",
+        "{API_URL}/v4.3.0/patient/",
         json=patient,
         headers={"Content-Type": "application/json"}
     )
@@ -106,7 +105,7 @@ Let's create your first FHIR patient:
     const patient = {
       resourceType: "Patient",
       identifier: [{
-        system: "http://codoc.com/fhir/patient/nip",
+        use: "usual",
         value: "123456789"
       }],
       name: [{
@@ -117,7 +116,7 @@ Let's create your first FHIR patient:
       birthDate: "1980-05-15"
     };
     
-    fetch("http://localhost:8000/v4.3.0/Patient/", {
+    fetch("{API_URL}/v4.3.0/patient/", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(patient)
@@ -136,14 +135,19 @@ Let's create your first FHIR patient:
   "id": "1",
   "identifier": [
     {
-      "system": "http://codoc.com/fhir/patient/nip",
-      "value": "123456789"
+      "use":"official",
+      "value":"1"
+    },
+    {
+      "use":"usual",
+      "system":"HIS",
+      "value":"123456789"
     }
   ],
   "name": [
     {
       "family": "Smith",
-      "given": ["John", "Michael"]
+      "given": ["John Michael"]
     }
   ],
   "gender": "male",
@@ -160,12 +164,12 @@ Use the `id` to retrieve the patient data:
 
 === "curl"
     ```bash
-    curl http://localhost:8000/v4.3.0/Patient/1/
+    curl {API_URL}/v4.3.0/patient/1/
     ```
 
 === "Python"
     ```python
-    response = requests.get("http://localhost:8000/v4.3.0/Patient/1/")
+    response = requests.get("{API_URL}/v4.3.0/patient/1/")
     patient = response.json()
     
     print(f"Last name: {patient['name'][0]['family']}")
@@ -175,7 +179,7 @@ Use the `id` to retrieve the patient data:
 
 === "JavaScript"
     ```javascript
-    fetch("http://localhost:8000/v4.3.0/Patient/1/")
+    fetch("{API_URL}/v4.3.0/patient/1/")
       .then(response => response.json())
       .then(patient => {
         console.log(`Last name: ${patient.name[0].family}`);
@@ -190,7 +194,7 @@ Let's add a phone number:
 
 === "curl"
     ```bash
-    curl -X PATCH http://localhost:8000/v4.3.0/Patient/1/ \
+    curl -X PATCH {API_URL}/v4.3.0/patient/1/ \
       -H "Content-Type: application/json" \
       -d '{
         "telecom": [
@@ -214,7 +218,7 @@ Let's add a phone number:
     }
     
     response = requests.patch(
-        "http://localhost:8000/v4.3.0/Patient/1/",
+        "{API_URL}/v4.3.0/patient/1/",
         json=update
     )
     
@@ -231,7 +235,7 @@ Let's add a phone number:
       }]
     };
     
-    fetch("http://localhost:8000/v4.3.0/Patient/1/", {
+    fetch("{API_URL}/v4.3.0/patient/1/", {
       method: "PATCH",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(update)
@@ -250,44 +254,44 @@ Let's create a hospital with a department:
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/Organization/ \
-      -H "Content-Type: application/json" \
+    curl -X POST {API_URL}/v4.3.0/organization/ \
+      -H 'Content-Type: application/json' \
       -d '{
-        "resourceType": "Organization",
-        "identifier": [{"system": "http://codoc.com/fhir/organization", "value": "HOSP001"}],
-        "name": "Paris University Hospital",
-        "type": [{"coding": [{"system": "http://codoc.com/fhir/organization-type", "code": "site"}]}]
-      }'
+            "resourceType": "Organization",
+            "identifier": [{"use": "usual", "value":  "HOSP001"}],
+            "name": "Paris University Hospital",
+            "type": [{"coding": [{"code": "prov"}]}]
+    }'
     ```
 
 === "Python"
     ```python
     site = {
         "resourceType": "Organization",
-        "identifier": [{"system": "http://codoc.com/fhir/organization", "value": "HOSP001"}],
+        "identifier": [{"use": "usual", "value": "HOSP001"}],
         "name": "Paris University Hospital",
-        "type": [{"coding": [{"system": "http://codoc.com/fhir/organization-type", "code": "site"}]}]
+        "type": [{"coding": [{"code": "prov"}]}]
     }
     
-    response = requests.post("http://localhost:8000/v4.3.0/Organization/", json=site)
+    response = requests.post("{API_URL}/v4.3.0/organization/", json=site)
     site_id = response.json()["id"]
     print(f"Site created with ID: {site_id}")
     ```
 
-**Response:** Note the site `id` (e.g., `"1"`).
+**Response:** Note the site `id` (e.g., `"site-1"`).
 
 ### 5.2. Create a Department
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/Organization/ \
-      -H "Content-Type: application/json" \
+    curl -X POST {API_URL}/v4.3.0/organization/ \
+      -H 'Content-Type: application/json' \
       -d '{
-        "resourceType": "Organization",
-        "identifier": [{"system": "http://codoc.com/fhir/organization", "value": "CARDIO"}],
-        "name": "Cardiology Department",
-        "type": [{"coding": [{"system": "http://codoc.com/fhir/organization-type", "code": "department"}]}],
-        "partOf": {"reference": "Organization/1"}
+            "resourceType": "Organization",
+            "identifier": [{"use": "usual", "value": "CARD001"}],
+            "name": "Cardiology Department",
+            "type": [{"coding": [{"code": "dept"}]}],
+            "partOf": {"reference": "organization/site-1"}
       }'
     ```
 
@@ -295,13 +299,13 @@ Let's create a hospital with a department:
     ```python
     department = {
         "resourceType": "Organization",
-        "identifier": [{"system": "http://codoc.com/fhir/organization", "value": "CARDIO"}],
+        "identifier": [{"use": "usual", "value": "CARD001"}],
         "name": "Cardiology Department",
-        "type": [{"coding": [{"system": "http://codoc.com/fhir/organization-type", "code": "department"}]}],
-        "partOf": {"reference": f"Organization/{site_id}"}
+        "type": [{"coding": [{"code": "dept"}]}]
+        "partOf": {"reference": "organization/site-1"}
     }
     
-    response = requests.post("http://localhost:8000/v4.3.0/Organization/", json=department)
+    response = requests.post("{API_URL}/v4.3.0/organization/", json=department)
     dept_id = response.json()["id"]
     print(f"Department created with ID: {dept_id}")
     ```
@@ -309,22 +313,59 @@ Let's create a hospital with a department:
 !!! tip "Hierarchy created"
     You now have: **Paris University Hospital** → **Cardiology Department**
 
+### 5.3. Create a Unit (Team)
+
+=== "curl"
+    ```bash
+    curl -X POST {API_URL}/v4.3.0/organization/ \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "resourceType": "Organization",
+        "identifier": [{"use": "usual", "value": "ICU001"}],
+        "name": "Intensive Care Unit",
+        "type": [{"coding": [{"code": "team"}]}],
+        "partOf": {"reference": "organization/department-1"}
+      }'
+    ```
+
+=== "Python"
+    ```python
+    unit = {
+        "resourceType": "Organization",
+        "identifier": [{"use": "usual", "value": "ICU001"}],
+        "name": "Intensive Care Unit",
+        "type": [{"coding": [{"code": "team"}]}],
+        "partOf": {"reference": f"organization/{dept_id}"}
+    }
+    
+    response = requests.post("{API_URL}/v4.3.0/organization/", json=unit)
+    unit_id = response.json()["id"]
+    print(f"Unit created with ID: {unit_id}")
+    ```
+
+!!! tip "Full hierarchy created"
+    You now have: **Paris University Hospital** → **Cardiology Department** → **Intensive Care Unit**
+
 ## 6. Create an Encounter (Admission)
 
 Let's create an admission for our patient in the cardiology department:
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/Encounter/ \
+    curl -X POST {API_URL}/v4.3.0/encounter/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Encounter",
-        "identifier": [{"system": "http://codoc.com/fhir/encounter", "value": "ADM001"}],
+        "identifier": [{"use": "usual", "value": "ADM001"}],
         "status": "in-progress",
-        "class": {"code": "IMP", "display": "Inpatient"},
+        "class": {"code": "IMP"},
         "subject": {"reference": "Patient/1"},
-        "serviceProvider": {"reference": "Organization/2"},
-        "period": {"start": "2024-01-15T08:00:00Z"}
+        "serviceProvider": {"reference": "Organization/department-1"},
+        "period": {"start": "2024-01-15T08:00:00Z"},
+        "hospitalization": {
+          "admitSource": {"coding": [{"code": "H"}]},
+          "dischargeDisposition": {"coding": [{"code": "01"}]}
+        }
       }'
     ```
 
@@ -332,15 +373,19 @@ Let's create an admission for our patient in the cardiology department:
     ```python
     encounter = {
         "resourceType": "Encounter",
-        "identifier": [{"system": "http://codoc.com/fhir/encounter", "value": "ADM001"}],
+        "identifier": [{"use": "usual", "value": "ADM001"}],
         "status": "in-progress",
-        "class": {"code": "IMP", "display": "Inpatient"},
+        "class": {"code": "IMP"},
         "subject": {"reference": "Patient/1"},
         "serviceProvider": {"reference": f"Organization/{dept_id}"},
-        "period": {"start": "2024-01-15T08:00:00Z"}
+        "period": {"start": "2024-01-15T08:00:00Z"},
+        "hospitalization": {
+          "admitSource": {"coding": [{"code": "H"}]},
+          "dischargeDisposition": {"coding": [{"code": "01"}]}
+        }
     }
     
-    response = requests.post("http://localhost:8000/v4.3.0/Encounter/", json=encounter)
+    response = requests.post("{API_URL}/v4.3.0/encounter/", json=encounter)
     print(f"Admission created: {response.json()['id']}")
     ```
 
@@ -350,12 +395,12 @@ If needed, you can delete a resource:
 
 === "curl"
     ```bash
-    curl -X DELETE http://localhost:8000/v4.3.0/Patient/1/
+    curl -X DELETE {API_URL}/v4.3.0/patient/1/
     ```
 
 === "Python"
     ```python
-    response = requests.delete("http://localhost:8000/v4.3.0/Patient/1/")
+    response = requests.delete("{API_URL}/v4.3.0/patient/1/")
     print(f"Status: {response.status_code}")  # 204 = success
     ```
 
@@ -366,11 +411,11 @@ If needed, you can delete a resource:
 
 | Operation | HTTP Method | Endpoint | Body |
 |-----------|-------------|----------|------|
-| **Create** | POST | `/v4.3.0/Patient/` | FHIR resource JSON |
-| **Read** | GET | `/v4.3.0/Patient/123/` | - |
-| **Update (complete)** | PUT | `/v4.3.0/Patient/123/` | Complete resource |
-| **Update (partial)** | PATCH | `/v4.3.0/Patient/123/` | Fields to modify |
-| **Delete** | DELETE | `/v4.3.0/Patient/123/` | - |
+| **Create** | POST | `/v4.3.0/patient/` | FHIR resource JSON |
+| **Read** | GET | `/v4.3.0/patient/123/` | - |
+| **Update (complete)** | PUT | `/v4.3.0/patient/123/` | Complete resource |
+| **Update (partial)** | PATCH | `/v4.3.0/patient/123/` | Fields to modify |
+| **Delete** | DELETE | `/v4.3.0/patient/123/` | - |
 
 ## HTTP Status Codes
 

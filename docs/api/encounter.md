@@ -59,24 +59,19 @@ An intra-hospital transfer with `partOf` pointing to a Stay.
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/encounter/ \
+    curl -X POST {API_URL}/v4.3.0/encounter/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Encounter",
+        "identifier": [{"use": "usual", "value": "ADM001"}],
         "status": "in-progress",
-        "class": {
-          "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-          "code": "IMP",
-          "display": "Inpatient"
-        },
-        "subject": {
-          "reference": "Patient/123"
-        },
-        "period": {
-          "start": "2024-01-15T10:00:00Z"
-        },
-        "serviceProvider": {
-          "reference": "Organization/5"
+        "class": {"code": "IMP"},
+        "subject": {"reference": "Patient/1"},
+        "serviceProvider": {"reference": "Organization/department-1"},
+        "period": {"start": "2024-01-15T08:00:00Z"},
+        "hospitalization": {
+          "admitSource": {"coding": [{"code": "H"}]},
+          "dischargeDisposition": {"coding": [{"code": "01"}]}
         }
       }'
     ```
@@ -85,14 +80,19 @@ An intra-hospital transfer with `partOf` pointing to a Stay.
     ```python
     stay = {
         "resourceType": "Encounter",
+        "identifier": [{"use": "usual", "value": "ADM001"}],
         "status": "in-progress",
         "class": {"code": "IMP"},
-        "subject": {"reference": "Patient/123"},
-        "period": {"start": "2024-01-15T10:00:00Z"},
-        "serviceProvider": {"reference": "Organization/5"}
+        "subject": {"reference": "Patient/1"},
+        "serviceProvider": {"reference": "Organization/department-1"},
+        "period": {"start": "2024-01-15T08:00:00Z"},
+        "hospitalization": {
+          "admitSource": {"coding": [{"code": "H"}]},
+          "dischargeDisposition": {"coding": [{"code": "01"}]}
+    }
     }
     
-    response = requests.post("http://localhost:8000/v4.3.0/encounter/", json=stay)
+    response = requests.post("{API_URL}/v4.3.0/encounter/", json=stay)
     stay_id = response.json()["id"]
     ```
 
@@ -100,39 +100,35 @@ An intra-hospital transfer with `partOf` pointing to a Stay.
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/encounter/ \
+    curl -X POST {API_URL}/v4.3.0/encounter/ \
       -H "Content-Type: application/json" \
       -d '{
-        "resourceType": "Encounter",
-        "status": "in-progress",
-        "class": {"code": "IMP"},
-        "subject": {"reference": "Patient/123"},
-        "partOf": {"reference": "Encounter/789"},
-        "period": {"start": "2024-01-16T14:00:00Z"},
-        "location": [
-          {
-            "location": {
-              "reference": "Organization/6",
-              "display": "Cardiology Department"
-            }
+            "resourceType": "Encounter",
+            "identifier": [{"use": "usual", "value": "MOV001"}],
+            "status": "in-progress",
+            "class": {"code": "IMP"},
+            "subject": {"reference": "Patient/1"},
+            "serviceProvider": {"reference": "Organization/unit-1"},
+            "period": {"start": "2025-01-20T10:00:00Z"},
+            "partOf": {"reference": "Encounter/1"},
+            "hospitalization": {
+            "admitSource": {"coding": [{"code": "H"}]},
+            "dischargeDisposition": {"coding": [{"code": "01"}]}
           }
-        ]
-      }'
+    }'
     ```
 
 ## Close a Stay
 
 === "curl"
     ```bash
-    curl -X PATCH http://localhost:8000/v4.3.0/encounter/stay/789/ \
+    curl -X PATCH {API_URL}/v4.3.0/encounter/stay/1/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Encounter",
         "status": "finished",
-        "period": {
-          "start": "2024-01-15T10:00:00Z",
-          "end": "2024-01-20T14:00:00Z"
-        }
+        "subject": {"reference": "Patient/1"},
+        "period": {"start": "2024-01-15T10:00:00Z", "end": "2024-01-20T16:00:00Z"}
       }'
     ```
 
@@ -200,39 +196,73 @@ GET /v4.3.0/encounter/789/
 ### Typical Patient Journey
 
 ```python
+# Patient Journey: Hospital → Department → Unit
+
+# Prerequisites: Create the organization hierarchy
+site = requests.post("{API_URL}/v4.3.0/organization/", json={
+    "resourceType": "Organization",
+    "identifier": [{"use": "usual", "value": "HOSP001"}],
+    "name": "Paris University Hospital",
+    "type": [{"coding": [{"code": "prov"}]}]
+}).json()
+site_id = site["id"]
+
+department = requests.post("{API_URL}/v4.3.0/organization/", json={
+    "resourceType": "Organization",
+    "identifier": [{"use": "usual", "value": "CARD001"}],
+    "name": "Cardiology Department",
+    "type": [{"coding": [{"code": "dept"}]}],
+    "partOf": {"reference": f"organization/{site_id}"}
+}).json()
+dept_id = department["id"]
+
+unit = requests.post("{API_URL}/v4.3.0/organization/", json={
+    "resourceType": "Organization",
+    "identifier": [{"use": "usual", "value": "ICU001"}],
+    "name": "Intensive Care Unit",
+    "type": [{"coding": [{"code": "team"}]}],
+    "partOf": {"reference": f"organization/{dept_id}"}
+}).json()
+unit_id = unit["id"]
+
 # 1. Emergency admission
-stay = requests.post("/v4.3.0/encounter/", json={
+stay = requests.post("{API_URL}/v4.3.0/encounter/", json={
     "resourceType": "Encounter",
+    "identifier": [{"use": "usual", "value": "ADM001"}],
     "status": "in-progress",
     "class": {"code": "EMER"},
     "subject": {"reference": "Patient/123"},
+    "serviceProvider": {"reference": f"Organization/{site_id}"},
     "period": {"start": "2024-01-15T08:00:00Z"}
 }).json()
+stay_id = stay["id"]
 
-# 2. Transfer to cardiology
-movement1 = requests.post("/v4.3.0/encounter/", json={
+# 2. Transfer to Cardiology Department
+movement1 = requests.post("{API_URL}/v4.3.0/encounter/", json={
     "resourceType": "Encounter",
+    "identifier": [{"use": "usual", "value": "MOV001"}],
     "status": "in-progress",
     "class": {"code": "IMP"},
     "subject": {"reference": "Patient/123"},
-    "partOf": {"reference": f"Encounter/{stay['id']}"},
-    "period": {"start": "2024-01-15T14:00:00Z"},
-    "location": [{"location": {"reference": "Organization/cardio"}}]
+    "serviceProvider": {"reference": f"Organization/{dept_id}"},
+    "partOf": {"reference": f"Encounter/{stay_id}"},
+    "period": {"start": "2024-01-15T14:00:00Z"}
 }).json()
 
-# 3. Transfer to ICU
-movement2 = requests.post("/v4.3.0/encounter/", json={
+# 3. Transfer to ICU (Intensive Care Unit)
+movement2 = requests.post("{API_URL}/v4.3.0/encounter/", json={
     "resourceType": "Encounter",
+    "identifier": [{"use": "usual", "value": "MOV002"}],
     "status": "in-progress",
     "class": {"code": "IMP"},
     "subject": {"reference": "Patient/123"},
-    "partOf": {"reference": f"Encounter/{stay['id']}"},
-    "period": {"start": "2024-01-17T02:00:00Z"},
-    "location": [{"location": {"reference": "Organization/icu"}}]
+    "serviceProvider": {"reference": f"Organization/{unit_id}"},
+    "partOf": {"reference": f"Encounter/{stay_id}"},
+    "period": {"start": "2024-01-17T02:00:00Z"}
 }).json()
 
 # 4. Discharge
-requests.patch(f"/v4.3.0/encounter/stay/{stay['id']}/", json={
+requests.patch("{API_URL}/v4.3.0/encounter/stay/{stay_id}/", json={
     "resourceType": "Encounter",
     "status": "finished",
     "period": {

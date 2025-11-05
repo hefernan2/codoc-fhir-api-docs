@@ -46,28 +46,21 @@ This resource automatically filters on `thesaurus_code = "Biologie"` (code confi
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/observation/ \
+    curl -X POST {API_URL}/v4.3.0/observation/ \
       -H "Content-Type: application/json" \
       -d '{
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [{
-            "system": "http://codoc.com/fhir/codesystem/Biologie",
-            "code": "HEMOGLOBIN",
-            "display": "Hemoglobin"
-          }]
-        },
-        "subject": {"reference": "Patient/123"},
-        "encounter": {"reference": "Encounter/789"},
-        "effectiveDateTime": "2024-01-15T08:30:00Z",
-        "valueQuantity": {
-          "value": 14.5,
-          "unit": "g/dL",
-          "system": "http://unitsofmeasure.org",
-          "code": "g/dL"
-        }
-      }'
+            "resourceType": "Observation",
+            "status": "final",
+            "code": {
+              "coding": [{"code": "GLU"}]
+            },
+            "subject": {"reference": "Patient/1"},
+            "effectiveDateTime": "2024-01-21T07:00:00Z",
+            "valueQuantity": {
+              "value": 95,
+              "unit": "mg/dL"
+            }
+          }'
     ```
 
 === "Python"
@@ -76,22 +69,17 @@ This resource automatically filters on `thesaurus_code = "Biologie"` (code confi
         "resourceType": "Observation",
         "status": "final",
         "code": {
-            "coding": [{
-                "system": "http://codoc.com/fhir/codesystem/Biologie",
-                "code": "HEMOGLOBIN",
-                "display": "Hemoglobin"
-            }]
+          "coding": [{"code": "GLU"}]
         },
-        "subject": {"reference": "Patient/123"},
-        "effectiveDateTime": "2024-01-15T08:30:00Z",
+        "subject": {"reference": "Patient/1"},
+        "effectiveDateTime": "2024-01-21T07:00:00Z",
         "valueQuantity": {
-            "value": 14.5,
-            "unit": "g/dL",
-            "code": "g/dL"
+          "value": 95,
+          "unit": "mg/dL"
         }
     }
     
-    response = requests.post("http://localhost:8000/v4.3.0/observation/", json=observation)
+    response = requests.post("{API_URL}/v4.3.0/observation/", json=observation)
     ```
 
 ## Status Codes

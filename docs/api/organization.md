@@ -58,29 +58,14 @@ Site → Department → Unit
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/organization/ \
-      -H "Content-Type: application/json" \
+    curl -X POST {API_URL}/v4.3.0/organization/ \
+      -H 'Content-Type: application/json' \
       -d '{
-        "resourceType": "Organization",
-        "identifier": [
-          {
-            "system": "http://codoc.com/fhir/organization",
-            "value": "CHU_PARIS"
-          }
-        ],
-        "type": [
-          {
-            "coding": [
-              {
-                "system": "http://codoc.com/fhir/organization-type",
-                "code": "site",
-                "display": "Site"
-              }
-            ]
-          }
-        ],
-        "name": "Paris University Hospital"
-      }'
+            "resourceType": "Organization",
+            "identifier": [{"use": "usual", "value":  "HOSP001"}],
+            "name": "Paris University Hospital",
+            "type": [{"coding": [{"code": "prov"}]}]
+    }'
     ```
 
 === "Python"
@@ -89,12 +74,12 @@ Site → Department → Unit
     
     site = {
         "resourceType": "Organization",
-        "identifier": [{"system": "http://codoc.com/fhir/organization", "value": "CHU_PARIS"}],
-        "type": [{"coding": [{"system": "http://codoc.com/fhir/organization-type", "code": "site"}]}],
-        "name": "Paris University Hospital"
+        "identifier": [{"use": "usual", "value":  "HOSP001"}],
+        "name": "Paris University Hospital",
+        "type": [{"coding": [{"code": "prov"}]}]
     }
     
-    response = requests.post("http://localhost:8000/v4.3.0/organization/", json=site)
+    response = requests.post("{API_URL}/v4.3.0/organization/", json=site)
     site_id = response.json()["id"]
     print(f"Site created with ID: {site_id}")
     ```
@@ -102,11 +87,33 @@ Site → Department → Unit
 **Response (201 Created):**
 ```json
 {
-  "resourceType": "Organization",
-  "id": "1",
-  "identifier": [{"system": "http://codoc.com/fhir/organization", "value": "CHU_PARIS"}],
-  "type": [{"coding": [{"code": "site", "display": "Site"}]}],
-  "name": "Paris University Hospital"
+  "resourceType":"Organization",
+  "id":"site-1",
+  "identifier":
+  [
+    {
+      "use":"official",
+      "value":"site-1"
+    },
+    {
+      "use":"usual",
+      "value":"HOSP001"
+    }
+  ],
+  "type":
+  [
+    {
+      "coding":
+      [
+        {
+          "system":"http://terminology.hl7.org/CodeSystem/organization-type",
+          "code":"prov",
+          "display":"Healthcare Provider"
+        }
+      ]
+    }
+  ], 
+  "name":"Paris University Hospital"
 }
 ```
 
@@ -114,25 +121,14 @@ Site → Department → Unit
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/organization/ \
-      -H "Content-Type: application/json" \
+    curl -X POST {API_URL}/v4.3.0/organization/ \
+      -H 'Content-Type: application/json' \
       -d '{
-        "resourceType": "Organization",
-        "identifier": [{"value": "CARDIO"}],
-        "type": [
-          {
-            "coding": [
-              {
-                "system": "http://codoc.com/fhir/organization-type",
-                "code": "department"
-              }
-            ]
-          }
-        ],
-        "name": "Cardiology Department",
-        "partOf": {
-          "reference": "Organization/1"
-        }
+            "resourceType": "Organization",
+            "identifier": [{"use": "usual", "value": "CARD001"}],
+            "name": "Cardiology Department",
+            "type": [{"coding": [{"code": "dept"}]}],
+            "partOf": {"reference": "organization/site-1"}
       }'
     ```
 
@@ -140,31 +136,47 @@ Site → Department → Unit
     ```python
     department = {
         "resourceType": "Organization",
-        "identifier": [{"value": "CARDIO"}],
-        "type": [{"coding": [{"system": "http://codoc.com/fhir/organization-type", "code": "department"}]}],
+        "identifier": [{"use": "usual", "value": "CARD001"}],
         "name": "Cardiology Department",
-        "partOf": {"reference": f"Organization/{site_id}"}
+        "type": [{"coding": [{"code": "dept"}]}],
+        "partOf": {"reference": "organization/site-1"}
     }
     
-    response = requests.post("http://localhost:8000/v4.3.0/organization/", json=department)
+    response = requests.post("{API_URL}/v4.3.0/organization/", json=department)
     dept_id = response.json()["id"]
+    print(f"Dept created with ID: {dept_id}")
+
     ```
 
 ## Create a Care Unit
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/organization/ \
-      -H "Content-Type: application/json" \
+    curl -X POST {API_URL}/v4.3.0/organization/ \
+      -H 'Content-Type: application/json' \
       -d '{
         "resourceType": "Organization",
-        "identifier": [{"value": "CARDIO_ICU"}],
-        "type": [{"coding": [{"code": "unit"}]}],
-        "name": "Cardiology Intensive Care Unit",
-        "partOf": {"reference": "Organization/2"}
+        "identifier": [{"use": "usual", "value": "ICU001"}],
+        "name": "Intensive Care Unit",
+        "type": [{"coding": [{"code": "team"}]}],
+        "partOf": {"reference": "organization/department-1"}
       }'
     ```
+=== "Python"
+    ```python
+    unit = {
+        "resourceType": "Organization",
+        "identifier": [{"use": "usual", "value": "ICU001"}],
+        "name": "Intensive Care Unit",
+        "type": [{"coding": [{"code": "team"}]}],
+        "partOf": {"reference": "organization/department-1"}
+    }
+    
+    response = requests.post("{API_URL}/v4.3.0/organization/", json=department)
+    unit_id = response.json()["id"]
+    print(f"Unit created with ID: {unit_id}")
 
+    ```
 !!! info "Hierarchy Validation"
     The API automatically validates that:
     
@@ -176,33 +188,33 @@ Site → Department → Unit
 
 ```json
 {
-  "resourceType": "Organization",
-  "identifier": [{"value": "CARDIO"}],
-  "type": [{"coding": [{"code": "department"}]}],
-  "name": "Cardiology Department",
-  "partOf": {"reference": "Organization/1"},
-  "extension": [
-    {
-      "url": "http://codoc.com/fhir/extension/period",
-      "valuePeriod": {
-        "start": "2020-01-01T00:00:00Z",
-        "end": "2025-12-31T23:59:59Z"
+    "resourceType": "Organization",
+    "identifier": [{"use": "usual", "value": "ICU001"}],
+    "name": "Intensive Care Unit",
+    "type": [{"coding": [{"code": "team"}]}],
+    "partOf": {"reference": "organization/department-1"},
+    "extension": [
+      {
+        "url": "unit_period",
+        "valuePeriod": {
+          "start": "2025-01-01T00:00:00Z",
+          "end": "2025-12-31T23:59:59Z"
+        }
       }
-    }
-  ]
-}
+    ]
+  }
 ```
 
 ## Retrieve an Organization
 
 === "curl"
     ```bash
-    curl http://localhost:8000/v4.3.0/organization/2/
+    curl {API_URL}/v4.3.0/organization/site-1/
     ```
 
 === "Python"
     ```python
-    response = requests.get("http://localhost:8000/v4.3.0/organization/2/")
+    response = requests.get("{API_URL}/v4.3.0/organization/site-1/")
     org = response.json()
     
     print(f"Type: {org['type'][0]['coding'][0]['code']}")
@@ -270,57 +282,6 @@ Site → Department → Unit
 ```
 
 **Solution:** Respect hierarchies: Unit → Department → Site/Instance.
-
-## Use Cases
-
-### Complete Hierarchy
-
-```python
-# 1. Create a site
-site = requests.post("/v4.3.0/organization/", json={
-    "resourceType": "Organization",
-    "identifier": [{"value": "HOSP001"}],
-    "type": [{"coding": [{"code": "site"}]}],
-    "name": "Saint-Louis Hospital"
-}).json()
-
-# 2. Create a department
-dept = requests.post("/v4.3.0/organization/", json={
-    "resourceType": "Organization",
-    "identifier": [{"value": "CARDIO"}],
-    "type": [{"coding": [{"code": "department"}]}],
-    "name": "Cardiology",
-    "partOf": {"reference": f"Organization/{site['id']}"}
-}).json()
-
-# 3. Create a unit
-unit = requests.post("/v4.3.0/organization/", json={
-    "resourceType": "Organization",
-    "identifier": [{"value": "CARDIO_A"}],
-    "type": [{"coding": [{"code": "unit"}]}],
-    "name": "Unit A - Cardiology",
-    "partOf": {"reference": f"Organization/{dept['id']}"}
-}).json()
-```
-
-### Navigate the Hierarchy
-
-```python
-# Retrieve a unit
-unit = requests.get(f"/v4.3.0/organization/{unit_id}/").json()
-
-# Get parent department
-dept_ref = unit['partOf']['reference']  # "Organization/2"
-dept_id = dept_ref.split('/')[-1]
-dept = requests.get(f"/v4.3.0/organization/{dept_id}/").json()
-
-# Get parent site
-site_ref = dept['partOf']['reference']
-site_id = site_ref.split('/')[-1]
-site = requests.get(f"/v4.3.0/organization/{site_id}/").json()
-
-print(f"{site['name']} → {dept['name']} → {unit['name']}")
-```
 
 ## Related Resources
 

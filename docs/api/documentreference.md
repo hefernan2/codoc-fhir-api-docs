@@ -42,30 +42,45 @@ The **DocumentReference** resource represents clinical documents (reports, notes
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/documentreference/ \
+    curl -X POST {API_URL}/v4.3.0/documentreference/ \
       -H "Content-Type: application/json" \
       -d '{
-        "resourceType": "DocumentReference",
-        "status": "current",
-        "subject": {"reference": "Patient/123"},
-        "context": {
-          "encounter": [{"reference": "Encounter/789"}]
-        },
-        "author": [
-          {"display": "Dr. Martin"},
-          {"reference": "Organization/5", "display": "Cardiologie"}
-        ],
-        "date": "2024-01-15T14:30:00Z",
-        "content": [
-          {
-            "attachment": {
-              "contentType": "text/html",
-              "data": "PHA+Q29tcHRlLXJlbmR1IGRlIGNvbnN1bHRhdGlvbjwvcD4=",
-              "title": "Consultation cardiologie"
+            "resourceType": "DocumentReference",
+            "status": "current",
+            "subject": {"reference": "Patient/1"},
+            "date": "2024-01-15T10:00:00Z",
+            "author": 
+            [
+              {
+                "display": "Dr. Smith"
+              },
+              {
+                "reference": "Organization/department-2",
+                "type": "https://hl7.org/fhir/R4B/organization.html",
+                "display": "Emergency Department"
+              }
+            ],
+            "content": 
+            [
+              {
+                "attachment": 
+                {
+                  "contentType": "text/html",
+                  "data": "PHA+Q2xpbmljYWwgUmVwb3J0PC9wPg==",
+                  "title": "Initial Report"
+                }
+              }
+            ],
+            "context": 
+            {
+              "encounter": 
+              [
+                {
+                  "reference": "Encounter/1"
+                }
+              ]
             }
-          }
-        ]
-      }'
+        }'
     ```
 
 === "Python"
@@ -73,29 +88,36 @@ The **DocumentReference** resource represents clinical documents (reports, notes
     import base64
     
     # Encode HTML content in Base64
-    html_content = "<p>Consultation report</p>"
+    html_content = "<p>Clinical Report</p>"
     encoded_content = base64.b64encode(html_content.encode()).decode()
     
     document = {
         "resourceType": "DocumentReference",
         "status": "current",
-        "subject": {"reference": "Patient/123"},
-        "context": {"encounter": [{"reference": "Encounter/789"}]},
+        "subject": {"reference": "Patient/1"},
+        "date": "2024-01-15T10:00:00Z",
         "author": [
-            {"display": "Dr. Martin"},
-            {"reference": "Organization/5", "display": "Cardiology"}
+            {"display": "Dr. Smith"},
+            {
+                "reference": "Organization/department-2",
+                "type": "https://hl7.org/fhir/R4B/organization.html",
+                "display": "Emergency Department"
+            }
         ],
-        "date": "2024-01-15T14:30:00Z",
         "content": [{
             "attachment": {
                 "contentType": "text/html",
                 "data": encoded_content,
-                "title": "Cardiology consultation"
+                "title": "Initial Report"
             }
-        }]
+        }],
+        "context": {
+            "encounter": [{"reference": "Encounter/1"}]
+        }
     }
     
-    response = requests.post("http://localhost:8000/v4.3.0/documentreference/", json=document)
+    response = requests.post("{API_URL}/v4.3.0/documentreference/", json=document)
+    print(f"Document created with ID: {response.json()['id']}")
     ```
 
 ## Retrieve and Decode a Document
@@ -105,7 +127,7 @@ The **DocumentReference** resource represents clinical documents (reports, notes
     import base64
     
     # Retrieve the document
-    response = requests.get("http://localhost:8000/v4.3.0/documentreference/456/")
+    response = requests.get("{API_URL}/v4.3.0/documentreference/456/")
     doc = response.json()
     
     # Decode the content
@@ -114,31 +136,6 @@ The **DocumentReference** resource represents clinical documents (reports, notes
     
     print(html_content)  # <p>Consultation report</p>
     ```
-
-## Multiple Authors
-
-A document can have multiple authors:
-
-```json
-{
-  "author": [
-    {"display": "Dr. Smith"},
-    {"display": "Dr. Martin"},
-    {"reference": "Organization/5", "display": "Cardiology Department"}
-  ]
-}
-```
-
-!!! info "Mandatory Reference for Organization"
-    If the author is an Organization (Department/Unit), the reference must point to an existing ID.
-
-## Automatic Text Creation
-
-During creation, a Codoc Text object is automatically generated:
-
-- Content: Base64 decoding of the `data` field
-- Type: HTML or Plain text according to `contentType`
-- Link: Via `document_id`
 
 ## Common Errors
 
@@ -190,15 +187,25 @@ encoded = base64.b64encode(text_content.encode()).decode()
 document = {
     "resourceType": "DocumentReference",
     "status": "current",
-    "subject": {"reference": "Patient/123"},
+    "subject": {"reference": "Patient/1"},
     "date": "2024-01-15T14:30:00Z",
+    "author": [
+        {"display": "Dr. Smith"},
+        {
+          "reference": "Organization/department-2",
+          "type": "https://hl7.org/fhir/R4B/organization.html",            "display": "Emergency Department"
+        }
+    ],
     "content": [{
         "attachment": {
             "contentType": "text/plain",
             "data": encoded,
             "title": "Consultation report"
         }
-    }]
+    }],
+    "context": {
+        "encounter": [{"reference": "Encounter/1"}]
+    }
 }
 ```
 

@@ -20,7 +20,7 @@ Let's start by creating a care unit that will manage the patient.
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/organization/ \
+    curl -X POST {API_URL}/v4.3.0/organization/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Organization",
@@ -34,10 +34,10 @@ Let's start by creating a care unit that will manage the patient.
     ```python
     import requests
     
-    BASE_URL = "http://localhost:8000/v4.3.0"
+    BASE_URL = "{API_URL}"
     
     # Create the unit
-    unit = requests.post(f"{BASE_URL}/organization/", json={
+    unit = requests.post(f"{BASE_URL}/v4.3.0/organization/", json={
         "resourceType": "Organization",
         "identifier": [{"value": "CARDIO_A"}],
         "type": [{"coding": [{"code": "unit"}]}],
@@ -53,7 +53,7 @@ Let's start by creating a care unit that will manage the patient.
 === "curl"
     ```bash
     # Replace {unit_id} with ID from step 1
-    curl -X POST http://localhost:8000/v4.3.0/patient/ \
+    curl -X POST {API_URL}/v4.3.0/patient/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Patient",
@@ -68,7 +68,7 @@ Let's start by creating a care unit that will manage the patient.
 === "Python"
     ```python
     # Create the patient
-    patient = requests.post(f"{BASE_URL}/patient/", json={
+    patient = requests.post(f"{BASE_URL}/v4.3.0/patient/", json={
         "resourceType": "Patient",
         "identifier": [{"value": "IPP987654"}],
         "name": [{"family": "Smith", "given": ["Emma", "Marie"]}],
@@ -85,7 +85,7 @@ Let's start by creating a care unit that will manage the patient.
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/encounter/ \
+    curl -X POST {API_URL}/v4.3.0/encounter/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Encounter",
@@ -100,7 +100,7 @@ Let's start by creating a care unit that will manage the patient.
 === "Python"
     ```python
     # Create the stay
-    stay = requests.post(f"{BASE_URL}/encounter/", json={
+    stay = requests.post(f"{BASE_URL}/v4.3.0/encounter/", json={
         "resourceType": "Encounter",
         "status": "in-progress",
         "class": {"code": "IMP"},
@@ -134,7 +134,7 @@ Let's start by creating a care unit that will manage the patient.
     encoded_content = base64.b64encode(html_content.encode()).decode()
     
     # Create the document
-    document = requests.post(f"{BASE_URL}/documentreference/", json={
+    document = requests.post(f"{BASE_URL}/v4.3.0/documentreference/", json={
         "resourceType": "DocumentReference",
         "status": "current",
         "subject": {"reference": f"Patient/{patient_id}"},
@@ -162,7 +162,7 @@ Let's start by creating a care unit that will manage the patient.
 === "Python"
     ```python
     # Hemoglobin
-    obs1 = requests.post(f"{BASE_URL}/observation/", json={
+    obs1 = requests.post(f"{BASE_URL}/v4.3.0/observation/", json={
         "resourceType": "Observation",
         "status": "final",
         "code": {"coding": [{"code": "HEMOGLOBIN", "display": "Hemoglobin"}]},
@@ -173,7 +173,7 @@ Let's start by creating a care unit that will manage the patient.
     }).json()
     
     # Blood glucose
-    obs2 = requests.post(f"{BASE_URL}/observation/", json={
+    obs2 = requests.post(f"{BASE_URL}/v4.3.0/observation/", json={
         "resourceType": "Observation",
         "status": "final",
         "code": {"coding": [{"code": "GLUCOSE", "display": "Blood Glucose"}]},
@@ -191,14 +191,14 @@ Let's start by creating a care unit that will manage the patient.
 === "Python"
     ```python
     # Retrieve all data
-    patient_data = requests.get(f"{BASE_URL}/patient/{patient_id}/").json()
-    stay_data = requests.get(f"{BASE_URL}/encounter/stay/{stay_id}/").json()
-    document_data = requests.get(f"{BASE_URL}/documentreference/{document_id}/").json()
+    patient_data = requests.get(f"{BASE_URL}/v4.3.0/patient/{patient_id}/").json()
+    stay_data = requests.get(f"{BASE_URL}/v4.3.0/encounter/{stay_id}/").json()
+    document_data = requests.get(f"{BASE_URL}/v4.3.0/documentreference/{document_id}/").json()
     
     print("\n📋 COMPLETE PATIENT RECORD")
     print("=" * 50)
     print(f"Patient: {patient_data['name'][0]['family']} {patient_data['name'][0]['given'][0]}")
-    print(f"IPP: {patient_data['identifier'][1]['value']}")
+    print(f"IPP: {patient_data['identifier'][0]['value']}")
     print(f"Gender: {patient_data['gender']}")
     print(f"Birth date: {patient_data['birthDate']}")
     print(f"\nStay: {stay_data['status']} since {stay_data['period']['start']}")
@@ -214,10 +214,10 @@ Here is the complete Python script to create the entire record at once:
 import requests
 import base64
 
-BASE_URL = "http://localhost:8000/v4.3.0"
+BASE_URL = "{API_URL}"
 
 # 1. Create the unit
-unit = requests.post(f"{BASE_URL}/organization/", json={
+unit = requests.post(f"{BASE_URL}/v4.3.0/organization/", json={
     "resourceType": "Organization",
     "identifier": [{"value": "CARDIO_A"}],
     "type": [{"coding": [{"code": "unit"}]}],
@@ -226,7 +226,7 @@ unit = requests.post(f"{BASE_URL}/organization/", json={
 unit_id = unit["id"]
 
 # 2. Create the patient
-patient = requests.post(f"{BASE_URL}/patient/", json={
+patient = requests.post(f"{BASE_URL}/v4.3.0/patient/", json={
     "resourceType": "Patient",
     "identifier": [{"value": "IPP987654"}],
     "name": [{"family": "Martin", "given": ["Sophie", "Marie"]}],
@@ -237,7 +237,7 @@ patient = requests.post(f"{BASE_URL}/patient/", json={
 patient_id = patient["id"]
 
 # 3. Create the stay
-stay = requests.post(f"{BASE_URL}/encounter/", json={
+stay = requests.post(f"{BASE_URL}/v4.3.0/encounter/", json={
     "resourceType": "Encounter",
     "status": "in-progress",
     "class": {"code": "IMP"},
@@ -250,7 +250,7 @@ stay_id = stay["id"]
 # 4. Create the document
 html_content = "<h1>Admission Report</h1><p>Chest pain</p>"
 encoded_content = base64.b64encode(html_content.encode()).decode()
-document = requests.post(f"{BASE_URL}/documentreference/", json={
+document = requests.post(f"{BASE_URL}/v4.3.0/documentreference/", json={
     "resourceType": "DocumentReference",
     "status": "current",
     "subject": {"reference": f"Patient/{patient_id}"},
@@ -260,7 +260,7 @@ document = requests.post(f"{BASE_URL}/documentreference/", json={
 }).json()
 
 # 5. Create the observations
-obs1 = requests.post(f"{BASE_URL}/observation/", json={
+obs1 = requests.post(f"{BASE_URL}/v4.3.0/observation/", json={
     "resourceType": "Observation",
     "status": "final",
     "code": {"coding": [{"code": "HEMOGLOBIN"}]},

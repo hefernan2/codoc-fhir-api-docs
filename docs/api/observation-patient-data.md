@@ -36,7 +36,7 @@ This sub-resource represents **patient-specific traits** (weight, height, allerg
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/observation/patient-data/ \
+    curl -X POST {API_URL}/v4.3.0/observation/patient-data/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Observation",
@@ -48,7 +48,7 @@ This sub-resource represents **patient-specific traits** (weight, height, allerg
             "display": "Body Weight"
           }]
         },
-        "subject": {"reference": "Patient/123"},
+        "subject": {"reference": "Patient/1"},
         "effectiveDateTime": "2024-01-15T10:00:00Z",
         "valueQuantity": {
           "value": 75.5,
@@ -64,13 +64,13 @@ This sub-resource represents **patient-specific traits** (weight, height, allerg
         "resourceType": "Observation",
         "status": "final",
         "code": {"coding": [{"code": "29463-7", "display": "Body Weight"}]},
-        "subject": {"reference": "Patient/123"},
+        "subject": {"reference": "Patient/1"},
         "effectiveDateTime": "2024-01-15T10:00:00Z",
         "valueQuantity": {"value": 75.5, "unit": "kg"}
     }
     
     response = requests.post(
-        "http://localhost:8000/v4.3.0/observation/patient-data/",
+        "{API_URL}/v4.3.0/observation/patient-data/",
         json=weight
     )
     ```

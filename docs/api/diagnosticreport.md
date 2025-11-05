@@ -33,66 +33,64 @@ Filters on `thesaurus_code = "Diagnostic"` (configurable via `THESAURUS_CODE_DIA
 
 | FHIR Field | Type | Required | Description |
 |------------|------|----------|-------------|
-| `status` | code | ✅ Yes | registered, partial, preliminary, final |
-| `code` | CodeableConcept | ✅ Yes | Examination type (from thesaurus) |
+| `status` | code | ✅ Yes | ⚠️ **Always "Unknown" - not customizable** |
+| `code` | CodeableConcept | ✅ Yes | Examination type from "Diagnostic" thesaurus |
 | `subject` | Reference | ✅ Yes | Related patient |
-| `encounter` | Reference | No | Associated stay |
-| `effectiveDateTime` | dateTime | No | Examination date |
-| `issued` | instant | No | Report publication date |
+| `effectiveDateTime` | dateTime | ✅ Yes| Examination date |
+| `encounter` | Reference | ❌ No | Associated stay |
+| `issued` | instant | ❌ No | Report publication date |
+| `conclusion` | string | ❌ No | Diagnostic findings/conclusion text |
+| `performer` | Reference[] | ❌ No | Department (Organization/department-{id}) |
 
 ## Create a Diagnostic Report
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/diagnosticreport/ \
+    curl -X POST {API_URL}/v4.3.0/diagnosticreport/ \
       -H "Content-Type: application/json" \
       -d '{
-        "resourceType": "DiagnosticReport",
-        "status": "final",
-        "code": {
-          "coding": [{
-            "system": "http://codoc.com/fhir/codesystem/Diagnostic",
-            "code": "ECG",
-            "display": "Electrocardiogram"
-          }]
-        },
-        "subject": {"reference": "Patient/123"},
-        "encounter": {"reference": "Encounter/789"},
-        "effectiveDateTime": "2024-01-15T10:00:00Z",
-        "issued": "2024-01-15T14:30:00Z"
+            "resourceType": "DiagnosticReport",
+            "status": "final",
+            "code": {
+              "coding": [{
+                "code": "MRI-BRAIN",
+                "display": "Brain MRI"
+              }]
+            },
+            "subject": {"reference": "Patient/1"},
+            "encounter": {"reference": "Encounter/2"},
+            "effectiveDateTime": "2024-01-19T10:00:00Z",
+            "issued": "2024-01-19T15:30:00Z",
+            "conclusion": "No acute intracranial abnormality. Normal brain structure.",
+            "performer": [
+              {"reference": "Organization/department-2"}
+            ]
       }'
     ```
 
 === "Python"
     ```python
     report = {
-        "resourceType": "DiagnosticReport",
-        "status": "final",
-        "code": {
-            "coding": [{
-                "system": "http://codoc.com/fhir/codesystem/Diagnostic",
-                "code": "ECG",
-                "display": "Electrocardiogram"
-            }]
-        },
-        "subject": {"reference": "Patient/123"},
-        "effectiveDateTime": "2024-01-15T10:00:00Z"
+            "resourceType": "DiagnosticReport",
+            "status": "final",
+            "code": {
+              "coding": [{
+                "code": "MRI-BRAIN",
+                "display": "Brain MRI"
+              }]
+            },
+            "subject": {"reference": "Patient/1"},
+            "encounter": {"reference": "Encounter/2"},
+            "effectiveDateTime": "2024-01-19T10:00:00Z",
+            "issued": "2024-01-19T15:30:00Z",
+            "conclusion": "No acute intracranial abnormality. Normal brain structure.",
+            "performer": [
+              {"reference": "Organization/department-2"}
+            ]
     }
     
-    response = requests.post("http://localhost:8000/v4.3.0/diagnosticreport/", json=report)
+    response = requests.post("{API_URL}/v4.3.0/diagnosticreport/", json=report)
     ```
-
-## Status Codes
-
-| Code | Description |
-|------|-------------|
-| `registered` | Registered |
-| `partial` | Partial results |
-| `preliminary` | Preliminary |
-| `final` | Final |
-| `amended` | Amended |
-| `corrected` | Corrected |
-| `cancelled` | Cancelled |
 
 ## Related Resources
 

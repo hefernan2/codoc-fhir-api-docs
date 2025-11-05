@@ -56,12 +56,3 @@ The [**Custom Thesaurus**](custom-thesaurus.md) guide explains how to create you
 
 ### Tracking admissions?
 The [**Patient Journey**](patient-journey.md) guide details stay and movement management.
-
-## Prerequisites
-
-Before following these guides, make sure you have:
-
-- ✅ Codoc FHIR API installed and accessible
-- ✅ HTTP client configured (curl, Python requests, or other)
-- ✅ Basic understanding of [CRUD operations](../../getting-started/quickstart/)
-- ✅ Access to [resource endpoints](../../api/)

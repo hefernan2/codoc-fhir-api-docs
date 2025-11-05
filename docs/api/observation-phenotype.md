@@ -36,67 +36,61 @@ This sub-resource represents **phenotypes automatically extracted** from clinica
 
 ## Field Structure
 
-| FHIR Field | Type | Required | Description |
-|------------|------|----------|-------------|
-| `status` | code | ✅ Yes | final (always) |
-| `code` | CodeableConcept | ✅ Yes | Extracted concept (from "Phenotypes" thesaurus) |
-| `subject` | Reference | ✅ Yes | Related patient |
-| `focus[]` | Reference[] | ✅ Yes | Source document (Codoc Text) |
-| `derivedFrom[]` | Reference[] | ✅ Yes | Parent DocumentReference |
-| `effectiveDateTime` | dateTime | ✅ Yes | Document date |
-| `extension[lexical_variant]` | string | ✅ Yes | Exact form found in text |
-| `extension[span_start]` | integer | ✅ Yes | Start position in text |
-| `extension[span_end]` | integer | ✅ Yes | End position in text |
-| `extension[span_type]` | string | ✅ Yes | Span type (phenotype, condition, etc.) |
-| `extension[date_patient]` | date | No | Date relative to patient |
-| `extension[age_patient]` | integer | No | Patient age during extraction |
-| `extension[negation]` | boolean | No | Negated concept? |
-| `extension[hypothesis]` | boolean | No | Hypothetical concept? |
-| `extension[family]` | boolean | No | Family history? |
+| FHIR Field | Type | Required | Source | Description |
+|------------|------|----------|--------|-------------|
+| `status` | code | ✅ Yes | Fixed | Always "final" |
+| `code` | CodeableConcept | ✅ Yes | Required | Phenotype concept from "Phenotypes" thesaurus |
+| `subject` | Reference | ✅ Yes | Required | Patient reference (e.g., Patient/24) |
+| `derivedFrom[]` | Reference[] | ✅ Yes | Required | DocumentReference (REQUIRED, not optional) |
+| `valueString` | string | ✅ Yes | Required | Exact text fragment found (concept_str_found) |
+| `effectiveDateTime` | dateTime | ✅ Yes | Auto | Extracted from Document.document_date |
+| `component[code="phenotype"]` | integer | ❌ No | Optional | Phenotype flag (0 or 1) |
+| `component[code="semantic_type"]` | string | ❌ No | Optional | e.g., "Disease", "Symptom" |
+| `component[code="tfidf_code_document"]` | Quantity | ❌ No | Optional | TF-IDF relevance score (float) |
+| `component[code="count_concept"]` | integer | ❌ No | Optional | Concept occurrence count |
+| `component[code="count_concept_str_found"]` | integer | ❌ No | Optional | String fragment occurrence count |
 
 ## Create a Phenotype
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/observation/phenotype/ \
+    curl -X POST {API_URL}/v4.3.0/observation/phenotype/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Observation",
         "status": "final",
         "code": {
           "coding": [{
-            "system": "http://codoc.com/fhir/codesystem/Phenotypes",
-            "code": "HYPERTENSION",
-            "display": "Hypertension"
+            "code": "I10",
+            "display": "Essential hypertension"
           }]
         },
-        "subject": {"reference": "Patient/123"},
-        "focus": [{"reference": "Text/456"}],
-        "derivedFrom": [{"reference": "DocumentReference/789"}],
-        "effectiveDateTime": "2024-01-15T14:30:00Z",
-        "extension": [
+        "subject": {"reference": "Patient/1"},
+        "derivedFrom": [{"reference": "DocumentReference/10"}],
+        "valueString": "essential hypertension",
+        "component": [
           {
-            "url": "http://codoc.com/fhir/extension/lexical_variant",
-            "valueString": "hypertension"
+            "code": {"coding": [{"code": "phenotype"}]},
+            "valueInteger": 1
           },
           {
-            "url": "http://codoc.com/fhir/extension/span_start",
-            "valueInteger": 42
+            "code": {"coding": [{"code": "semantic_type"}]},
+            "valueString": "Disease"
           },
           {
-            "url": "http://codoc.com/fhir/extension/span_end",
-            "valueInteger": 67
+            "code": {"coding": [{"code": "tfidf_code_document"}]},
+            "valueQuantity": {"value": 0.85}
           },
           {
-            "url": "http://codoc.com/fhir/extension/span_type",
-            "valueString": "phenotype"
+            "code": {"coding": [{"code": "count_concept"}]},
+            "valueInteger": 2
           },
           {
-            "url": "http://codoc.com/fhir/extension/age_patient",
-            "valueInteger": 65
+            "code": {"coding": [{"code": "count_concept_str_found"}]},
+            "valueInteger": 1
           }
         ]
-      }'
+        }'
     ```
 
 === "Python"
@@ -105,53 +99,39 @@ This sub-resource represents **phenotypes automatically extracted** from clinica
         "resourceType": "Observation",
         "status": "final",
         "code": {
-            "coding": [{
-                "system": "http://codoc.com/fhir/codesystem/Phenotypes",
-                "code": "HYPERTENSION",
-                "display": "Hypertension"
-            }]
+          "coding": [{
+            "code": "I10",
+            "display": "Essential hypertension"
+          }]
         },
-        "subject": {"reference": "Patient/123"},
-        "focus": [{"reference": "Text/456"}],
-        "derivedFrom": [{"reference": "DocumentReference/789"}],
-        "effectiveDateTime": "2024-01-15T14:30:00Z",
-        "extension": [
-            {"url": "http://codoc.com/fhir/extension/lexical_variant", "valueString": "hypertension"},
-            {"url": "http://codoc.com/fhir/extension/span_start", "valueInteger": 42},
-            {"url": "http://codoc.com/fhir/extension/span_end", "valueInteger": 67},
-            {"url": "http://codoc.com/fhir/extension/span_type", "valueString": "phenotype"},
-            {"url": "http://codoc.com/fhir/extension/age_patient", "valueInteger": 65}
-        ]
-    }
-    
-    response = requests.post("http://localhost:8000/v4.3.0/observation/phenotype/", json=phenotype)
+        "subject": {"reference": "Patient/1"},
+        "derivedFrom": [{"reference": "DocumentReference/10"}],
+    "valueString": "hypertension",
+    "component": [
+        {
+            "code": {"coding": [{"code": "phenotype"}]},
+            "valueInteger": 1
+        },
+        {
+            "code": {"coding": [{"code": "semantic_type"}]},
+            "valueString": "Disease"
+        },
+        {
+            "code": {"coding": [{"code": "tfidf_code_document"}]},
+            "valueQuantity": {"value": 0.85}
+        },
+        {
+            "code": {"coding": [{"code": "count_concept"}]},
+            "valueInteger": 2
+        },
+        {
+            "code": {"coding": [{"code": "count_concept_str_found"}]},
+            "valueInteger": 1
+        }
+    ]
+}    response = requests.post("{API_URL}/v4.3.0/observation/phenotype/", json=phenotype)
     ```
 
-## Important Extensions
-
-### Location in Text
-
-```json
-{
-  "extension": [
-    {"url": ".../lexical_variant", "valueString": "chest pain"},
-    {"url": ".../span_start", "valueInteger": 123},
-    {"url": ".../span_end", "valueInteger": 144}
-  ]
-}
-```
-
-### Medical Context
-
-```json
-{
-  "extension": [
-    {"url": ".../negation", "valueBoolean": true},
-    {"url": ".../hypothesis", "valueBoolean": false},
-    {"url": ".../family", "valueBoolean": false}
-  ]
-}
-```
 
 **Examples:**
 - **Negation:** "No diabetes" → `negation: true`
@@ -164,64 +144,97 @@ This sub-resource represents **phenotypes automatically extracted** from clinica
 
 ```python
 # Document: "The patient has hypertension and chest pain."
-document_id = 789
-text_id = 456
-patient_id = 123
+document_id = 10
+patient_id = 24
 
 phenotypes = [
     {
-        "code": "HYPERTENSION",
-        "lexical_variant": "hypertension",
-        "span_start": 19,
-        "span_end": 31
+        "code": "I10",
+        "display": "Essential hypertension",
+        "valueString": "hypertension",
+        "semantic_type": "Disease",
+        "tfidf": 0.85,
+        "count": 2,
+        "count_str_found": 1
     },
     {
-        "code": "CHEST_PAIN",
-        "lexical_variant": "chest pain",
-        "span_start": 36,
-        "span_end": 46
+        "code": "R07.9",
+        "display": "Chest pain, unspecified",
+        "valueString": "chest pain",
+        "semantic_type": "Symptom",
+        "tfidf": 0.92,
+        "count": 1,
+        "count_str_found": 1
     }
 ]
 
 for p in phenotypes:
-    requests.post("/v4.3.0/observation/phenotype/", json={
+    requests.post("{API_URL}/v4.3.0/observation/phenotype/", json={
         "resourceType": "Observation",
         "status": "final",
-        "code": {"coding": [{"code": p["code"]}]},
+        "code": {"coding": [{"code": p["code"], "display": p["display"]}]},
         "subject": {"reference": f"Patient/{patient_id}"},
-        "focus": [{"reference": f"Text/{text_id}"}],
         "derivedFrom": [{"reference": f"DocumentReference/{document_id}"}],
-        "effectiveDateTime": "2024-01-15T14:30:00Z",
-        "extension": [
-            {"url": ".../lexical_variant", "valueString": p["lexical_variant"]},
-            {"url": ".../span_start", "valueInteger": p["span_start"]},
-            {"url": ".../span_end", "valueInteger": p["span_end"]},
-            {"url": ".../span_type", "valueString": "phenotype"}
+        "valueString": p["valueString"],
+        "component": [
+            {
+                "code": {"coding": [{"code": "phenotype"}]},
+                "valueInteger": 1
+            },
+            {
+                "code": {"coding": [{"code": "semantic_type"}]},
+                "valueString": p["semantic_type"]
+            },
+            {
+                "code": {"coding": [{"code": "tfidf_code_document"}]},
+                "valueQuantity": {"value": p["tfidf"]}
+            },
+            {
+                "code": {"coding": [{"code": "count_concept"}]},
+                "valueInteger": p["count"]
+            },
+            {
+                "code": {"coding": [{"code": "count_concept_str_found"}]},
+                "valueInteger": p["count_str_found"]
+            }
         ]
     })
 ```
 
-### Negated Phenotype
-
-```json
-{
-  "code": {"coding": [{"code": "DIABETES", "display": "Diabetes"}]},
-  "extension": [
-    {"url": ".../lexical_variant", "valueString": "no diabetes"},
-    {"url": ".../negation", "valueBoolean": true}
-  ]
-}
-```
-
-## Automatic Age Calculation
-
-The `age_patient` extension is calculated automatically:
+### Phenotype with Semantic Type and Relevance
 
 ```python
-age_patient = (document_date - patient_birth_date).years
-```
+# Create a phenotype with TF-IDF score indicating relevance
+phenotype = {
+    "resourceType": "Observation",
+    "status": "final",
+    "code": {
+        "coding": [{
+            "code": "J06.9",
+            "display": "Acute upper respiratory infection, unspecified"
+        }]
+    },
+    "subject": {"reference": "Patient/24"},
+    "derivedFrom": [{"reference": "DocumentReference/15"}],
+    "valueString": "upper respiratory infection",
+    "component": [
+        {
+            "code": {"coding": [{"code": "semantic_type"}]},
+            "valueString": "Disease"
+        },
+        {
+            "code": {"coding": [{"code": "tfidf_code_document"}]},
+            "valueQuantity": {"value": 0.78}
+        },
+        {
+            "code": {"coding": [{"code": "count_concept"}]},
+            "valueInteger": 1
+        }
+    ]
+}
 
-If the patient is 65 years old when the document is created, `age_patient = 65`.
+response = requests.post("{API_URL}/v4.3.0/observation/phenotype/", json=phenotype)
+```
 
 ## Related Resources
 

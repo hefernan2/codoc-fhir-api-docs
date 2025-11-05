@@ -29,13 +29,18 @@ Before creating phenotypes, you must have:
     ```python
     import requests
     
-    BASE_URL = "http://localhost:8000/v4.3.0"
+    BASE_URL = "{API_URL}"
     
     # Create the thesaurus
-    thesaurus = requests.post(f"{BASE_URL}/codesystem/", json={
+    thesaurus = requests.post(f"{BASE_URL}/v4.3.0/codesystem/", json={
         "resourceType": "CodeSystem",
-        "identifier": [{"value": "PHENOTYPES"}],
+        "url": "urn:codoc:fhir:codesystem:PHENOTYPES",
+        "identifier": [
+          {"use": "official", "value": "1"},
+          {"use": "usual", "value": "PHENOTYPES"}
+        ],
         "name": "Phenotypes",
+        "title": "Phenotypes Thesaurus",
         "status": "active",
         "content": "complete"
     }).json()
@@ -50,7 +55,7 @@ Before creating phenotypes, you must have:
     ]
     
     requests.post(
-        f"{BASE_URL}/codesystem/PHENOTYPES/concept/",
+        f"{BASE_URL}/v4.3.0/codesystem/PHENOTYPES/concept/",
         json={"concept": concepts}
     )
     
@@ -64,7 +69,7 @@ Before creating phenotypes, you must have:
     import base64
     
     # Patient
-    patient = requests.post(f"{BASE_URL}/patient/", json={
+    patient = requests.post(f"{BASE_URL}/v4.3.0/patient/", json={
         "resourceType": "Patient",
         "identifier": [{"value": "IPP555"}],
         "name": [{"family": "Smith", "given": ["Peter"]}],
@@ -74,7 +79,7 @@ Before creating phenotypes, you must have:
     patient_id = patient["id"]
     
     # Stay
-    stay = requests.post(f"{BASE_URL}/encounter/", json={
+    stay = requests.post(f"{BASE_URL}/v4.3.0/encounter/", json={
         "resourceType": "Encounter",
         "status": "in-progress",
         "class": {"code": "IMP"},
@@ -105,7 +110,7 @@ Before creating phenotypes, you must have:
     
     encoded_content = base64.b64encode(clinical_text.encode()).decode()
     
-    document = requests.post(f"{BASE_URL}/documentreference/", json={
+    document = requests.post(f"{BASE_URL}/v4.3.0/documentreference/", json={
         "resourceType": "DocumentReference",
         "status": "current",
         "subject": {"reference": f"Patient/{patient_id}"},
@@ -130,62 +135,53 @@ Before creating phenotypes, you must have:
 
 ## Step 3: Extract Phenotypes
 
-Now let's create the phenotypes found in the text:
+Now let's create the phenotypes found in the text using the new component-based structure:
 
 === "Python"
     ```python
-    # Retrieve the Text ID (required for focus)
-    # Note: In a real scenario, you would get this ID from your database
-    # For this example, let's assume text_id = 1
-    text_id = 1
-    
-    # Define found phenotypes with their positions in the text
+    # Define found phenotypes with their components
     found_phenotypes = [
         {
             "code": "HYPERTENSION",
             "display": "Arterial hypertension",
-            "lexical_variant": "arterial hypertension",
-            "span_start": 145,
-            "span_end": 169,
-            "negation": False,
-            "hypothesis": False,
-            "family": False
+            "phenotype": "arterial hypertension",
+            "semantic_type": "DISEASE_OR_SYNDROME",
+            "tfidf_code_document": 0.85,
+            "count_concept": 1,
+            "count_concept_str_found": 1
         },
         {
             "code": "DIABETE",
             "display": "Diabetes",
-            "lexical_variant": "type 2 diabetes",
-            "span_start": 198,
-            "span_end": 216,
-            "negation": False,
-            "hypothesis": False,
-            "family": False
+            "phenotype": "type 2 diabetes",
+            "semantic_type": "DISEASE_OR_SYNDROME",
+            "tfidf_code_document": 0.78,
+            "count_concept": 2,
+            "count_concept_str_found": 2
         },
         {
             "code": "DOULEUR_THORACIQUE",
             "display": "Chest pain",
-            "lexical_variant": "Chest pain",
-            "span_start": 385,
-            "span_end": 405,
-            "negation": False,
-            "hypothesis": False,
-            "family": False
+            "phenotype": "chest pain",
+            "semantic_type": "SIGN_OR_SYMPTOM",
+            "tfidf_code_document": 0.92,
+            "count_concept": 1,
+            "count_concept_str_found": 1
         },
         {
             "code": "DYSPNEE",
             "display": "Dyspnea",
-            "lexical_variant": "dyspnea",
-            "span_start": 445,
-            "span_end": 452,
-            "negation": False,
-            "hypothesis": False,
-            "family": False
+            "phenotype": "dyspnea",
+            "semantic_type": "SIGN_OR_SYMPTOM",
+            "tfidf_code_document": 0.88,
+            "count_concept": 1,
+            "count_concept_str_found": 1
         }
     ]
     
     # Create phenotype observations
     for pheno in found_phenotypes:
-        observation = requests.post(f"{BASE_URL}/observation/phenotype/", json={
+        observation = requests.post(f"{BASE_URL}/v4.3.0/observation/phenotype/", json={
             "resourceType": "Observation",
             "status": "final",
             "code": {
@@ -196,42 +192,34 @@ Now let's create the phenotypes found in the text:
                 }]
             },
             "subject": {"reference": f"Patient/{patient_id}"},
-            "focus": [{"reference": f"Text/{text_id}"}],
             "derivedFrom": [{"reference": f"DocumentReference/{document_id}"}],
             "effectiveDateTime": "2024-11-05T10:00:00Z",
-            "extension": [
+            "valueString": pheno["phenotype"],
+            "component": [
                 {
-                    "url": "http://codoc.com/fhir/extension/lexical_variant",
-                    "valueString": pheno["lexical_variant"]
+                    "code": {"text": "phenotype"},
+                    "valueString": pheno["phenotype"]
                 },
                 {
-                    "url": "http://codoc.com/fhir/extension/span_start",
-                    "valueInteger": pheno["span_start"]
+                    "code": {"text": "semantic_type"},
+                    "valueString": pheno["semantic_type"]
                 },
                 {
-                    "url": "http://codoc.com/fhir/extension/span_end",
-                    "valueInteger": pheno["span_end"]
+                    "code": {"text": "tfidf_code_document"},
+                    "valueDecimal": pheno["tfidf_code_document"]
                 },
                 {
-                    "url": "http://codoc.com/fhir/extension/span_type",
-                    "valueString": "phenotype"
+                    "code": {"text": "count_concept"},
+                    "valueInteger": pheno["count_concept"]
                 },
                 {
-                    "url": "http://codoc.com/fhir/extension/negation",
-                    "valueBoolean": pheno["negation"]
-                },
-                {
-                    "url": "http://codoc.com/fhir/extension/hypothesis",
-                    "valueBoolean": pheno["hypothesis"]
-                },
-                {
-                    "url": "http://codoc.com/fhir/extension/family",
-                    "valueBoolean": pheno["family"]
+                    "code": {"text": "count_concept_str_found"},
+                    "valueInteger": pheno["count_concept_str_found"]
                 }
             ]
         }).json()
         
-        print(f"✅ Phenotype created: {pheno['display']} (span {pheno['span_start']}-{pheno['span_end']})")
+        print(f"✅ Phenotype created: {pheno['display']}")
     ```
 
 ## Step 4: Retrieve All Patient Phenotypes
@@ -244,19 +232,22 @@ Now let's create the phenotypes found in the text:
     
     # Example of retrieving a phenotype
     phenotype_id = 1  # ID obtained during creation
-    pheno = requests.get(f"{BASE_URL}/observation/phenotype/{phenotype_id}/").json()
+    pheno = requests.get(f"{BASE_URL}/v4.3.0/observation/phenotype/{phenotype_id}/").json()
     
     print(f"\n📋 Retrieved phenotype:")
     print(f"   Code: {pheno['code']['coding'][0]['code']}")
     print(f"   Display: {pheno['code']['coding'][0]['display']}")
+    print(f"   Value: {pheno['valueString']}")
     
-    # Retrieve lexical_variant from extensions
-    for ext in pheno.get('extension', []):
-        if 'lexical_variant' in ext['url']:
-            print(f"   Exact form: '{ext['valueString']}'")
+    # Retrieve components
+    for component in pheno.get('component', []):
+        comp_code = component['code'].get('text', component['code'].get('coding', [{}])[0].get('code', ''))
+        print(f"   {comp_code}: {component.get('valueString', component.get('valueDecimal', component.get('valueInteger')))}")
     ```
 
 ## Managing Medical Contexts
+
+With the component-based approach, medical contexts are captured in the phenotype value and components:
 
 ### Negation
 
@@ -266,9 +257,12 @@ When a concept is **negated** in the text:
 
 ```python
 {
+    "valueString": "no diabetes",
     "code": {"coding": [{"code": "DIABETE"}]},
-    "extension": [
-        {"url": ".../negation", "valueBoolean": True}
+    "component": [
+        {"code": {"text": "phenotype"}, "valueString": "no diabetes"},
+        {"code": {"text": "semantic_type"}, "valueString": "DISEASE_OR_SYNDROME"},
+        # ... other components
     ]
 }
 ```
@@ -281,9 +275,12 @@ When it's a **suspicion**:
 
 ```python
 {
+    "valueString": "suspected unstable angina",
     "code": {"coding": [{"code": "ANGOR"}]},
-    "extension": [
-        {"url": ".../hypothesis", "valueBoolean": True}
+    "component": [
+        {"code": {"text": "phenotype"}, "valueString": "suspected unstable angina"},
+        {"code": {"text": "semantic_type"}, "valueString": "DISEASE_OR_SYNDROME"},
+        # ... other components
     ]
 }
 ```
@@ -296,23 +293,15 @@ When it's a family history:
 
 ```python
 {
+    "valueString": "family history of coronary disease",
     "code": {"coding": [{"code": "MALADIE_CORONARIENNE"}]},
-    "extension": [
-        {"url": ".../family", "valueBoolean": True}
+    "component": [
+        {"code": {"text": "phenotype"}, "valueString": "family history of coronary disease"},
+        {"code": {"text": "semantic_type"}, "valueString": "DISEASE_OR_SYNDROME"},
+        # ... other components
     ]
 }
 ```
-
-## Automatic Age Calculation
-
-The `age_patient` extension is calculated automatically:
-
-```python
-# If patient born on 1960-05-15 and document dated 2024-11-05
-# age_patient = 64 years
-```
-
-This age is useful for epidemiological analyses.
 
 ## Complete Enrichment Script
 
@@ -320,28 +309,25 @@ This age is useful for epidemiological analyses.
 import requests
 import base64
 
-BASE_URL = "http://localhost:8000/v4.3.0"
+BASE_URL = "{API_URL}"
 
-def create_phenotype(patient_id, document_id, text_id, code, display, 
-                     lexical_variant, span_start, span_end,
-                     negation=False, hypothesis=False, family=False):
-    """Create a phenotype with all its attributes."""
-    return requests.post(f"{BASE_URL}/observation/phenotype/", json={
+def create_phenotype(patient_id, document_id, code, display, phenotype_value,
+                     semantic_type, tfidf, count, count_found):
+    """Create a phenotype with component structure."""
+    return requests.post(f"{BASE_URL}/v4.3.0/observation/phenotype/", json={
         "resourceType": "Observation",
         "status": "final",
         "code": {"coding": [{"code": code, "display": display}]},
         "subject": {"reference": f"Patient/{patient_id}"},
-        "focus": [{"reference": f"Text/{text_id}"}],
         "derivedFrom": [{"reference": f"DocumentReference/{document_id}"}],
         "effectiveDateTime": "2024-11-05T10:00:00Z",
-        "extension": [
-            {"url": "http://codoc.com/fhir/extension/lexical_variant", "valueString": lexical_variant},
-            {"url": "http://codoc.com/fhir/extension/span_start", "valueInteger": span_start},
-            {"url": "http://codoc.com/fhir/extension/span_end", "valueInteger": span_end},
-            {"url": "http://codoc.com/fhir/extension/span_type", "valueString": "phenotype"},
-            {"url": "http://codoc.com/fhir/extension/negation", "valueBoolean": negation},
-            {"url": "http://codoc.com/fhir/extension/hypothesis", "valueBoolean": hypothesis},
-            {"url": "http://codoc.com/fhir/extension/family", "valueBoolean": family}
+        "valueString": phenotype_value,
+        "component": [
+            {"code": {"text": "phenotype"}, "valueString": phenotype_value},
+            {"code": {"text": "semantic_type"}, "valueString": semantic_type},
+            {"code": {"text": "tfidf_code_document"}, "valueDecimal": tfidf},
+            {"code": {"text": "count_concept"}, "valueInteger": count},
+            {"code": {"text": "count_concept_str_found"}, "valueInteger": count_found}
         ]
     }).json()
 
@@ -349,15 +335,13 @@ def create_phenotype(patient_id, document_id, text_id, code, display,
 pheno1 = create_phenotype(
     patient_id=123,
     document_id=456,
-    text_id=789,
     code="HYPERTENSION",
     display="Arterial hypertension",
-    lexical_variant="arterial hypertension",
-    span_start=145,
-    span_end=169,
-    negation=False,
-    hypothesis=False,
-    family=False
+    phenotype_value="arterial hypertension",
+    semantic_type="DISEASE_OR_SYNDROME",
+    tfidf=0.85,
+    count=1,
+    count_found=1
 )
 
 print(f"✅ Phenotype created: ID {pheno1['id']}")
@@ -365,14 +349,14 @@ print(f"✅ Phenotype created: ID {pheno1['id']}")
 
 ## Key Points
 
-!!! tip "Mandatory Extensions"
-    The extensions `lexical_variant`, `span_start`, `span_end`, and `span_type` are **mandatory**
+!!! tip "Component Structure"
+    Use the component[] array for phenotype metadata (semantic_type, tfidf, counts) instead of extensions
 
-!!! warning "Text Reference"
-    The `focus` field must point to the Codoc `Text` ID, not the `DocumentReference`
+!!! warning "Mandatory Fields"
+    `derivedFrom` pointing to the DocumentReference is **REQUIRED**
 
-!!! info "Automatic Calculation"
-    The patient age (`age_patient`) is calculated automatically by the API
+!!! info "Value Field"
+    Use `valueString` for the phenotype text value (e.g., "arterial hypertension")
 
 ## Next Steps
 

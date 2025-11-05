@@ -20,12 +20,23 @@ A **thesaurus** (or CodeSystem in FHIR) is a controlled vocabulary that contains
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/codesystem/ \
+    curl -X POST {API_URL}/v4.3.0/codesystem/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "CodeSystem",
-        "identifier": [{"value": "ALLERGIES"}],
+        "url": "urn:codoc:fhir:codesystem:ALLERGIES",
+        "identifier": [
+          {
+            "use": "official",
+            "value": "1"
+          },
+          {
+            "use": "usual",
+            "value": "ALLERGIES"
+          }
+        ],
         "name": "Allergies",
+        "title": "Allergies Thesaurus",
         "status": "active",
         "content": "complete"
       }'
@@ -35,12 +46,23 @@ A **thesaurus** (or CodeSystem in FHIR) is a controlled vocabulary that contains
     ```python
     import requests
     
-    BASE_URL = "http://localhost:8000/v4.3.0"
+    BASE_URL = "{API_URL}"
     
-    thesaurus = requests.post(f"{BASE_URL}/codesystem/", json={
+    thesaurus = requests.post(f"{BASE_URL}/v4.3.0/codesystem/", json={
         "resourceType": "CodeSystem",
-        "identifier": [{"value": "ALLERGIES"}],
+        "url": "urn:codoc:fhir:codesystem:ALLERGIES",
+        "identifier": [
+          {
+            "use": "official",
+            "value": "1"
+          },
+          {
+            "use": "usual",
+            "value": "ALLERGIES"
+          }
+        ],
         "name": "Allergies",
+        "title": "Allergies Thesaurus",
         "status": "active",
         "content": "complete"
     }).json()
@@ -52,7 +74,7 @@ A **thesaurus** (or CodeSystem in FHIR) is a controlled vocabulary that contains
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/codesystem/ALLERGIES/concept/ \
+    curl -X POST {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/ \
       -H "Content-Type: application/json" \
       -d '{
         "code": "PENICILLINE",
@@ -62,7 +84,7 @@ A **thesaurus** (or CodeSystem in FHIR) is a controlled vocabulary that contains
 
 === "Python"
     ```python
-    concept = requests.post(f"{BASE_URL}/codesystem/ALLERGIES/concept/", json={
+    concept = requests.post(f"{BASE_URL}/v4.3.0/codesystem/ALLERGIES/concept/", json={
         "code": "PENICILLINE",
         "display": "Penicillin allergy"
     }).json()
@@ -85,7 +107,7 @@ A **thesaurus** (or CodeSystem in FHIR) is a controlled vocabulary that contains
     
     # Add all concepts at once
     response = requests.post(
-        f"{BASE_URL}/codesystem/ALLERGIES/concept/",
+        f"{BASE_URL}/v4.3.0/codesystem/ALLERGIES/concept/",
         json={"concept": concepts}
     )
     
@@ -98,7 +120,7 @@ A **thesaurus** (or CodeSystem in FHIR) is a controlled vocabulary that contains
 === "Python"
     ```python
     # Retrieve the thesaurus with all its concepts
-    thesaurus = requests.get(f"{BASE_URL}/codesystem/ALLERGIES/").json()
+    thesaurus = requests.get(f"{BASE_URL}/v4.3.0/codesystem/ALLERGIES/").json()
     
     print(f"\n📚 Thesaurus: {thesaurus['name']}")
     print(f"   Status: {thesaurus['status']}")
@@ -114,10 +136,15 @@ A **thesaurus** (or CodeSystem in FHIR) is a controlled vocabulary that contains
 === "Python"
     ```python
     # Modify name and status
-    updated = requests.put(f"{BASE_URL}/codesystem/ALLERGIES/", json={
+    updated = requests.put(f"{BASE_URL}/v4.3.0/codesystem/ALLERGIES/", json={
         "resourceType": "CodeSystem",
-        "identifier": [{"value": "ALLERGIES"}],
+        "url": "urn:codoc:fhir:codesystem:ALLERGIES",
+        "identifier": [
+          {"use": "official", "value": "1"},
+          {"use": "usual", "value": "ALLERGIES"}
+        ],
         "name": "Allergies and intolerances",
+        "title": "Allergies Thesaurus",
         "status": "active",
         "content": "complete",
         "concept": [
@@ -134,13 +161,18 @@ A **thesaurus** (or CodeSystem in FHIR) is a controlled vocabulary that contains
 ```python
 import requests
 
-BASE_URL = "http://localhost:8000/v4.3.0"
+BASE_URL = "{API_URL}"
 
 # 1. Create the thesaurus
-covid_thesaurus = requests.post(f"{BASE_URL}/codesystem/", json={
+covid_thesaurus = requests.post(f"{BASE_URL}/v4.3.0/codesystem/", json={
     "resourceType": "CodeSystem",
-    "identifier": [{"value": "COVID_SYMPTOMES"}],
+    "url": "urn:codoc:fhir:codesystem:COVID_SYMPTOMES",
+    "identifier": [
+      {"use": "official", "value": "1"},
+      {"use": "usual", "value": "COVID_SYMPTOMES"}
+    ],
     "name": "COVID-19 Symptoms",
+    "title": "COVID-19 Symptoms",
     "status": "active",
     "content": "complete"
 }).json()
@@ -163,18 +195,18 @@ symptoms = [
 
 # 3. Add all concepts
 response = requests.post(
-    f"{BASE_URL}/codesystem/COVID_SYMPTOMES/concept/",
+    f"{BASE_URL}/v4.3.0/codesystem/COVID_SYMPTOMES/concept/",
     json={"concept": symptoms}
 )
 
 print(f"✅ {len(symptoms)} symptoms added")
 
 # 4. Verify the result
-thesaurus = requests.get(f"{BASE_URL}/codesystem/COVID_SYMPTOMES/").json()
+thesaurus = requests.get(f"{BASE_URL}/v4.3.0/codesystem/COVID_SYMPTOMES/").json()
 
 print(f"\n📚 Complete thesaurus:")
 print(f"   Name: {thesaurus['name']}")
-print(f"   Code: {thesaurus['identifier'][0]['value']}")
+print(f"   Code: {thesaurus['identifier'][1]['value']}")
 print(f"   Concepts: {len(thesaurus['concept'])}")
 
 print("\n📋 Concept list:")
@@ -212,7 +244,7 @@ Once created, use your thesaurus to code observations:
 === "Python"
     ```python
     # Create an observation with a code from the thesaurus
-    observation = requests.post(f"{BASE_URL}/observation/", json={
+    observation = requests.post(f"{BASE_URL}/v4.3.0/observation/", json={
         "resourceType": "Observation",
         "status": "final",
         "code": {
@@ -244,7 +276,7 @@ observation_ids = [1, 2, 3, 4, 5]
 # Retrieve and filter
 covid_observations = []
 for obs_id in observation_ids:
-    obs = requests.get(f"{BASE_URL}/observation/{obs_id}/").json()
+    obs = requests.get(f"{BASE_URL}/v4.3.0/observation/{obs_id}/").json()
     
     # Check if the code belongs to the COVID thesaurus
     system = obs['code']['coding'][0].get('system', '')
@@ -258,12 +290,12 @@ print(f"✅ {len(covid_observations)} COVID observations found")
 
 === "curl"
     ```bash
-    curl -X DELETE http://localhost:8000/v4.3.0/codesystem/ALLERGIES/
+    curl -X DELETE {API_URL}/v4.3.0/codesystem/ALLERGIES/
     ```
 
 === "Python"
     ```python
-    response = requests.delete(f"{BASE_URL}/codesystem/ALLERGIES/")
+    response = requests.delete(f"{BASE_URL}/v4.3.0/codesystem/ALLERGIES/")
     
     if response.status_code == 204:
         print("✅ Thesaurus deleted")
@@ -277,10 +309,15 @@ print(f"✅ {len(covid_observations)} COVID observations found")
 ### Treatment Thesaurus
 
 ```python
-treatments = requests.post(f"{BASE_URL}/codesystem/", json={
+treatments = requests.post(f"{BASE_URL}/v4.3.0/codesystem/", json={
     "resourceType": "CodeSystem",
-    "identifier": [{"value": "TRAITEMENTS_CARDIO"}],
+    "url": "urn:codoc:fhir:codesystem:TRAITEMENTS_CARDIO",
+    "identifier": [
+      {"use": "official", "value": "1"},
+      {"use": "usual", "value": "TRAITEMENTS_CARDIO"}
+    ],
     "name": "Cardiology treatments",
+    "title": "Cardiology Treatments",
     "status": "active",
     "content": "complete"
 }).json()
@@ -294,7 +331,7 @@ concepts = [
 ]
 
 requests.post(
-    f"{BASE_URL}/codesystem/TRAITEMENTS_CARDIO/concept/",
+    f"{BASE_URL}/v4.3.0/codesystem/TRAITEMENTS_CARDIO/concept/",
     json={"concept": concepts}
 )
 ```
@@ -302,10 +339,15 @@ requests.post(
 ### Clinical Scores Thesaurus
 
 ```python
-scores = requests.post(f"{BASE_URL}/codesystem/", json={
+scores = requests.post(f"{BASE_URL}/v4.3.0/codesystem/", json={
     "resourceType": "CodeSystem",
-    "identifier": [{"value": "SCORES_CARDIO"}],
+    "url": "urn:codoc:fhir:codesystem:SCORES_CARDIO",
+    "identifier": [
+      {"use": "official", "value": "1"},
+      {"use": "usual", "value": "SCORES_CARDIO"}
+    ],
     "name": "Cardiology scores",
+    "title": "Cardiology Scores",
     "status": "active",
     "content": "complete"
 }).json()
@@ -318,7 +360,7 @@ concepts = [
 ]
 
 requests.post(
-    f"{BASE_URL}/codesystem/SCORES_CARDIO/concept/",
+    f"{BASE_URL}/v4.3.0/codesystem/SCORES_CARDIO/concept/",
     json={"concept": concepts}
 )
 ```

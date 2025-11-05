@@ -33,66 +33,113 @@ Filters on `thesaurus_code = "Prescription"` (configurable via `THESAURUS_CODE_M
 
 | FHIR Field | Type | Required | Description |
 |------------|------|----------|-------------|
-| `status` | code | ✅ Yes | active, completed, stopped, cancelled |
-| `intent` | code | ✅ Yes | proposal, plan, order, instance-order |
-| `medicationCodeableConcept` | CodeableConcept | ✅ Yes | Prescribed medication (ATC) |
+| `status` | code | ✅ Yes | ⚠️ **Always "Unknown" - not customizable**  |
+| `intent` | code | ✅ Yes | ⚠️ **Always "order" - not customizable** |
+| `medicationCodeableConcept` | CodeableConcept | ✅ Yes | Prescribed medication (ATC/Thesaurus) |
 | `subject` | Reference | ✅ Yes | Related patient |
-| `encounter` | Reference | No | Associated stay |
-| `authoredOn` | dateTime | No | Prescription date |
+| `authoredOn` | dateTime | ✅ **Yes** (NOT Optional!) | Prescription date |
+| `encounter` | Reference | ❌ No | Associated stay |
+| `dosageInstruction[].doseAndRate[].doseQuantity` | Quantity | ❌ No | Dose value + unit |
+| `dosageInstruction[].timing.repeat` | TimingRepeat | ❌ No | Frequency/period information |
+| `dosageInstruction[].route` | CodeableConcept | ❌ No | Administration route |
+| `dispenseRequest.validityPeriod` | Period | ❌ No | Dispensing validity dates |
+| `performer` | Reference | ❌ No | Department (Organization/department-{id}) |
 
 ## Create a Prescription
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/medicationrequest/ \
+    curl -X POST {API_URL}/v4.3.0/medicationrequest/ \
       -H "Content-Type: application/json" \
       -d '{
-        "resourceType": "MedicationRequest",
-        "status": "active",
-        "intent": "order",
-        "medicationCodeableConcept": {
-          "coding": [{
-            "system": "http://codoc.com/fhir/codesystem/Prescription",
-            "code": "C01DA02",
-            "display": "Glyceryl trinitrate"
-          }]
-        },
-        "subject": {"reference": "Patient/123"},
-        "encounter": {"reference": "Encounter/789"},
-        "authoredOn": "2024-01-15T10:00:00Z"
+            "resourceType": "MedicationRequest",
+            "status": "active",
+            "intent": "order",
+            "medicationCodeableConcept": {
+              "coding": [{
+                "code": "AMOX500",
+                "display": "Amoxicillin 500mg"
+              }]
+            },
+            "subject": {"reference": "Patient/1"},
+            "encounter": {"reference": "Encounter/2"},
+            "authoredOn": "2024-01-15T09:00:00Z",
+            "dosageInstruction": [
+              {
+                "doseAndRate": [{
+                  "doseQuantity": {
+                    "value": 500,
+                    "unit": "mg"
+                  }
+                }],
+                "timing": {
+                  "repeat": {
+                    "frequency": 3,
+                    "period": 1,
+                    "periodUnit": "d"
+                  }
+                },
+                "route": {
+                  "text": "Oral"
+                }
+              }
+            ],
+            "dispenseRequest": {
+              "validityPeriod": {
+                "start": "2024-01-15T00:00:00Z",
+                "end": "2024-01-22T00:00:00Z"
+              }
+            },
+            "performer": {"reference": "Organization/department-2"}
       }'
     ```
 
 === "Python"
     ```python
     prescription = {
-        "resourceType": "MedicationRequest",
-        "status": "active",
-        "intent": "order",
-        "medicationCodeableConcept": {
+          "resourceType": "MedicationRequest",
+          "status": "active",
+          "intent": "order",
+          "medicationCodeableConcept": {
             "coding": [{
-                "system": "http://codoc.com/fhir/codesystem/Prescription",
-                "code": "C01DA02",
-                "display": "Glyceryl trinitrate"
+              "code": "AMOX500",
+              "display": "Amoxicillin 500mg"
             }]
-        },
-        "subject": {"reference": "Patient/123"},
-        "authoredOn": "2024-01-15T10:00:00Z"
+          },
+          "subject": {"reference": "Patient/1"},
+          "encounter": {"reference": "Encounter/2"},
+          "authoredOn": "2024-01-15T09:00:00Z",
+          "dosageInstruction": [
+            {
+              "doseAndRate": [{
+                "doseQuantity": {
+                  "value": 500,
+                  "unit": "mg"
+                }
+              }],
+              "timing": {
+                "repeat": {
+                  "frequency": 3,
+                  "period": 1,
+                  "periodUnit": "d"
+                }
+              },
+              "route": {
+                "text": "Oral"
+              }
+            }
+          ],
+          "dispenseRequest": {
+            "validityPeriod": {
+              "start": "2024-01-15T00:00:00Z",
+              "end": "2024-01-22T00:00:00Z"
+            }
+          },
+          "performer": {"reference": "Organization/department-2"}
     }
     
-    response = requests.post("http://localhost:8000/v4.3.0/medicationrequest/", json=prescription)
+    response = requests.post("{API_URL}/v4.3.0/medicationrequest/", json=prescription)
     ```
-
-## Status Codes
-
-| Code | Description |
-|------|-------------|
-| `active` | Active prescription |
-| `on-hold` | On hold |
-| `cancelled` | Cancelled |
-| `completed` | Completed |
-| `entered-in-error` | Data entry error |
-| `stopped` | Stopped |
 
 ## Related Resources
 

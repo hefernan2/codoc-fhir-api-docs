@@ -58,7 +58,7 @@ The **Patient** resource represents patient identity and demographic data.
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/patient/ \
+    curl -X POST {API_URL}/v4.3.0/patient/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Patient",
@@ -77,7 +77,7 @@ The **Patient** resource represents patient identity and demographic data.
         "gender": "male",
         "birthDate": "1980-05-15",
         "managingOrganization": {
-          "reference": "Organization/5"
+          "reference": "Organization/department-1"
         }
       }'
     ```
@@ -92,11 +92,11 @@ The **Patient** resource represents patient identity and demographic data.
         "name": [{"family": "Smith", "given": ["John", "Peter"]}],
         "gender": "male",
         "birthDate": "1980-05-15",
-        "managingOrganization": {"reference": "Organization/5"}
+        "managingOrganization": {"reference": "Organization/department-1"}
     }
     
     response = requests.post(
-        "http://localhost:8000/v4.3.0/patient/",
+        "{API_URL}/v4.3.0/patient/",
         json=patient
     )
     
@@ -107,16 +107,31 @@ The **Patient** resource represents patient identity and demographic data.
 **Response (201 Created):**
 ```json
 {
-  "resourceType": "Patient",
-  "id": "123",
-  "identifier": [
-    {"use": "official", "value": "123"},
-    {"use": "usual", "value": "IPP123456"}
+  "resourceType":"Patient",
+  "id":"123",
+  "identifier":[
+    {
+      "use":"official","value":"123"
+    },
+    {
+      "use":"usual",
+      "system":"HIS",
+      "value":"IPP123456"
+    }
   ],
-  "name": [{"family": "Smith", "given": ["John", "Peter"]}],
-  "gender": "male",
-  "birthDate": "1980-05-15",
-  "managingOrganization": {"reference": "Organization/5"}
+  "name":[
+    {
+      "family":"Smith",
+      "given":["John Peter"]
+    }
+  ],
+  "gender":"male",
+  "birthDate":"1980-05-15",
+  "managingOrganization":
+  {
+    "reference":"organization/department-1",
+    "type":"https://hl7.org/fhir/R4B/organization.html","display":"Cardiology Department"
+  }
 }
 ```
 
@@ -124,12 +139,12 @@ The **Patient** resource represents patient identity and demographic data.
 
 === "curl"
     ```bash
-    curl http://localhost:8000/v4.3.0/patient/123/
+    curl {API_URL}/v4.3.0/patient/123/
     ```
 
 === "Python"
     ```python
-    response = requests.get("http://localhost:8000/v4.3.0/patient/123/")
+    response = requests.get("{API_URL}/v4.3.0/patient/123/")
     patient = response.json()
     
     print(f"Last name: {patient['name'][0]['family']}")
@@ -139,11 +154,7 @@ The **Patient** resource represents patient identity and demographic data.
 
 ## Declare a Death
 
-### With exact date and time
-
-=== "curl"
-    ```bash
-    curl -X PATCH http://localhost:8000/v4.3.0/patient/123/ \
+    curl -X PATCH {API_URL}/v4.3.0/patient/123/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Patient",
@@ -151,11 +162,7 @@ The **Patient** resource represents patient identity and demographic data.
       }'
     ```
 
-### Without precise date
-
-=== "curl"
-    ```bash
-    curl -X PATCH http://localhost:8000/v4.3.0/patient/123/ \
+    curl -X PATCH {API_URL}/v4.3.0/patient/123/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Patient",
@@ -166,13 +173,7 @@ The **Patient** resource represents patient identity and demographic data.
 !!! warning "Mutual exclusivity"
     Use **either** `deceasedBoolean` **or** `deceasedDateTime`, never both.
 
-## Merge Patients
-
-When a duplicate is detected, link the old patient to the new one:
-
-=== "curl"
-    ```bash
-    curl -X PATCH http://localhost:8000/v4.3.0/patient/456/ \
+    curl -X PATCH {API_URL}/v4.3.0/patient/456/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Patient",

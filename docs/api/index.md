@@ -24,49 +24,49 @@ The API exposes **10 FHIR resources** covering the entire clinical data model:
 <div class="feature-cards">
   <div class="feature-card">
     <h3>👤 Identity</h3>
-    <p><a href="../patient/">Patient</a> - Demographics and identifiers</p>
+    <p><a href="patient/">Patient</a> - Demographics and identifiers</p>
   </div>
   
   <div class="feature-card">
     <h3>🏥 Organization</h3>
-    <p><a href="../organization/">Organization</a> - Hospital structure</p>
+    <p><a href="organization/">Organization</a> - Hospital structure</p>
   </div>
   
   <div class="feature-card">
     <h3>🛏️ Stays</h3>
-    <p><a href="../encounter/">Encounter</a> - Admissions and movements</p>
+    <p><a href="encounter/">Encounter</a> - Admissions and movements</p>
   </div>
   
   <div class="feature-card">
     <h3>📄 Documents</h3>
-    <p><a href="../documentreference/">DocumentReference</a> - Clinical documents</p>
+    <p><a href="documentreference/">DocumentReference</a> - Clinical documents</p>
   </div>
   
   <div class="feature-card">
     <h3>🔬 Observations</h3>
-    <p><a href="../observation/">Observation</a> - Lab results<br>
-    <a href="../observation-patient-data/">Observation-patient-data</a> - Patient data<br>
-    <a href="../observation-phenotype/">Observation-phenotype</a> - NLP phenotypes</p>
+    <p><a href="observation/">Observation</a> - Lab results<br>
+    <a href="observation-patient-data/">Observation-patient-data</a> - Patient data<br>
+    <a href="observation-phenotype/">Observation-phenotype</a> - NLP phenotypes</p>
   </div>
   
   <div class="feature-card">
     <h3>💊 Prescriptions</h3>
-    <p><a href="../medicationrequest/">MedicationRequest</a> - Medications</p>
+    <p><a href="medicationrequest/">MedicationRequest</a> - Medications</p>
   </div>
   
   <div class="feature-card">
     <h3>🏥 Procedures</h3>
-    <p><a href="../procedure/">Procedure</a> - Medical procedures</p>
+    <p><a href="procedure/">Procedure</a> - Medical procedures</p>
   </div>
   
   <div class="feature-card">
     <h3>📋 Diagnostics</h3>
-    <p><a href="../diagnosticreport/">DiagnosticReport</a> - Reports</p>
+    <p><a href="diagnosticreport/">DiagnosticReport</a> - Reports</p>
   </div>
   
   <div class="feature-card">
     <h3>📚 Terminology</h3>
-    <p><a href="../codesystem/">CodeSystem</a> - Medical thesauri</p>
+    <p><a href="codesystem/">CodeSystem</a> - Medical thesauri</p>
   </div>
 </div>
 
@@ -125,20 +125,6 @@ Accept: application/fhir+json
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
 ```
 
-### Request Body
-
-All creation/modification requests use FHIR JSON format:
-
-```json
-{
-  "resourceType": "Patient",
-  "identifier": [{"value": "IPP123"}],
-  "name": [{"family": "Smith", "given": ["John"]}],
-  "gender": "male",
-  "birthDate": "1980-05-15"
-}
-```
-
 ## HTTP Status Codes
 
 | Code | Meaning | Example |
@@ -152,33 +138,6 @@ All creation/modification requests use FHIR JSON format:
 | **409** | Conflict - Constraint violated | Duplicate identifier |
 | **500** | Internal Server Error | Application bug |
 
-## Response Format
-
-### Success (200/201)
-
-```json
-{
-  "resourceType": "Patient",
-  "id": "123",
-  "identifier": [{"value": "IPP123"}],
-  "name": [{"family": "Smith", "given": ["John"]}],
-  "gender": "male",
-  "birthDate": "1980-05-15"
-}
-```
-
-### Error (400/404/409)
-
-```json
-{
-  "resourceType": "OperationOutcome",
-  "issue": [{
-    "severity": "error",
-    "code": "invalid",
-    "diagnostics": "Patient with NIP IPP123 does not exist"
-  }]
-}
-```
 
 ## FHIR Versioning
 
@@ -222,4 +181,4 @@ Explore detailed documentation for each resource:
 
 Or check out the practical guides:
 
-[Practical Guides →](../../guides/){ .md-button .md-button--primary }
+[Practical Guides →](../guides/){ .md-button .md-button--primary }

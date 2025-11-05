@@ -52,15 +52,12 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 
 | FHIR Field | Type | Required | Description |
 |------------|------|----------|-------------|
-| `url` | uri | ✅ Yes | Unique thesaurus URL |
-| `identifier[]` | Identifier | ✅ Yes | Unique code (e.g., ICD10) |
-| `version` | string | No | Thesaurus version |
-| `name` | string | ✅ Yes | Technical name |
-| `title` | string | No | Full title |
-| `status` | code | ✅ Yes | draft, active, retired |
-| `content` | code | ✅ Yes | complete, example, fragment |
-| `count` | integer | Auto | Number of concepts |
-| `concept[]` | BackboneElement[] | No | List of concepts |
+| `url` | uri | ✅ Yes | Auto-generated: urn:codoc:fhir:codesystem:{code} |
+| `identifier[]` | Identifier[] | ✅ Yes | 2 identifiers: official (ID) + usual (code) |
+| `name` | string | ✅ Yes | Technical name (maps to Thesaurus.code) |
+| `title` | string | ✅ **Yes** (NOT Optional!) | Full title (maps to Thesaurus.label) |
+| `status` | code | ✅ Yes | ⚠️ Hardcoded "active" (not customizable) |
+| `content` | code | ✅ Yes | ⚠️ Hardcoded "complete" (not customizable) |
 
 ### Concept
 
@@ -73,19 +70,25 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 
 === "curl"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/codesystem/ \
+    curl -X POST {API_URL}/v4.3.0/codesystem/ \
       -H "Content-Type: application/json" \
       -d '{
-        "resourceType": "CodeSystem",
-        "url": "http://codoc.com/fhir/codesystem/Allergies",
-        "identifier": [{
-          "system": "http://codoc.com/fhir/codesystem",
-          "value": "ALLERGIES"
-        }],
-        "name": "Allergies",
-        "title": "Allergy Thesaurus",
-        "status": "active",
-        "content": "complete"
+          "resourceType": "CodeSystem",
+          "url": "urn:codoc:fhir:codesystem:CIM10-FR",
+          "identifier": [
+            {
+              "use": "official",
+              "value": "1"
+            },
+            {
+              "use": "usual",
+              "value": "CIM10-FR"
+            }
+          ],
+          "name": "CIM10-FR",
+          "title": "CIM-10 French Classification",
+          "status": "active",
+          "content": "complete"
       }'
     ```
 
@@ -93,39 +96,57 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
     ```python
     thesaurus = {
         "resourceType": "CodeSystem",
-        "url": "http://codoc.com/fhir/codesystem/Allergies",
-        "identifier": [{"value": "ALLERGIES"}],
-        "name": "Allergies",
+        "url": "urn:codoc:fhir:codesystem:CIM10-FR",
+        "identifier": [
+          {
+            "use": "official",
+            "value": "1"
+          },
+          {
+            "use": "usual",
+            "value": "CIM10-FR"
+          }
+        ],
+        "name": "CIM10-FR",
+        "title": "CIM-10 French Classification",
         "status": "active",
         "content": "complete"
     }
     
-    response = requests.post("http://localhost:8000/v4.3.0/codesystem/", json=thesaurus)
+    response = requests.post("{API_URL}/v4.3.0/codesystem/", json=thesaurus)
     ```
 
 ## Add Concepts
 
 === "curl (single concept)"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/codesystem/ALLERGIES/concept/ \
-      -H "Content-Type: application/json" \
-      -d '{
-        "concept": {
+    curl -X POST {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/ \
+    -H "Content-Type: application/json" \
+    -d   '{
+          "resourceType": "CodeSystemConcept",
           "code": "PENICILLIN",
           "display": "Penicillin allergy"
-        }
       }'
     ```
 
 === "curl (multiple concepts)"
     ```bash
-    curl -X POST http://localhost:8000/v4.3.0/codesystem/ALLERGIES/concept/ \
+    curl -X POST {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/ \
       -H "Content-Type: application/json" \
       -d '{
         "concept": [
-          {"code": "PENICILLIN", "display": "Penicillin allergy"},
-          {"code": "PEANUT", "display": "Peanut allergy"},
-          {"code": "LATEX", "display": "Latex allergy"}
+          {
+            "code": "PENICILLIN",
+            "display": "Penicillin allergy"
+          },
+          {
+            "code": "PEANUT",
+            "display": "Peanut allergy"
+          },
+          {
+            "code": "LATEX",
+            "display": "Latex allergy"
+          }
         ]
       }'
     ```
@@ -140,7 +161,7 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
     ]
     
     response = requests.post(
-        "http://localhost:8000/v4.3.0/codesystem/ALLERGIES/concept/",
+        "{API_URL}/v4.3.0/codesystem/ALLERGIES/concept/",
         json={"concept": concepts}
     )
     ```
@@ -149,23 +170,28 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 
 === "curl"
     ```bash
-    curl http://localhost:8000/v4.3.0/codesystem/ALLERGIES/
+    curl {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/{CONCEPT_ID}
     ```
 
 **Response:**
 ```json
 {
-  "resourceType": "CodeSystem",
-  "url": "http://codoc.com/fhir/codesystem/Allergies",
-  "identifier": [{"value": "ALLERGIES"}],
-  "name": "Allergies",
-  "status": "active",
-  "content": "complete",
-  "count": 3,
-  "concept": [
-    {"code": "PENICILLIN", "display": "Penicillin allergy"},
-    {"code": "PEANUT", "display": "Peanut allergy"},
-    {"code": "LATEX", "display": "Latex allergy"}
+  [
+    {
+      "id":"11",
+      "code":"PENICILLIN",
+      "display":"Penicillin allergy"
+    },
+    {
+      "id":"12",
+      "code":"PEANUT",
+      "display":"Peanut allergy"
+    },
+    {
+      "id":"13",
+      "code":"LATEX",
+      "display":"Latex allergy"
+    }
   ]
 }
 ```
@@ -174,13 +200,12 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 
 === "curl"
     ```bash
-    curl -X PUT http://localhost:8000/v4.3.0/codesystem/ALLERGIES/concept/PENICILLIN/ \
+    curl -X PUT {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/{PENICILLIN_ID}/ \
       -H "Content-Type: application/json" \
       -d '{
-        "concept": {
-          "code": "PENICILLIN",
-          "display": "Penicillin and derivatives allergy"
-        }
+            "resourceType": "CodeSystemConcept",
+            "code": "PENICILLIN",
+            "display": "Penicillin and derivatives allergy"
       }'
     ```
 
@@ -188,65 +213,73 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 
 === "curl"
     ```bash
-    curl -X DELETE http://localhost:8000/v4.3.0/codesystem/ALLERGIES/concept/LATEX/
+    curl -X DELETE {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/{CONCEPT_ID}/
     ```
-
-## Pre-configured Standard Thesauruses
-
-| Code | Name | Usage |
-|------|------|-------|
-| `CIM10` | International Classification of Diseases | Diagnoses |
-| `ATC13` | Anatomical Therapeutic Chemical | Medications |
-| `CCAM` | Common Classification of Medical Acts | Acts |
-| `Biologie` | Biological examinations | Observations |
-| `Phenotypes` | NLP Phenotypes | Semantic enrichment |
 
 ## Use Cases
 
 ### Create a Custom Thesaurus
 
-```python
-# 1. Create the thesaurus
-thesaurus = requests.post("/v4.3.0/codesystem/", json={
-    "resourceType": "CodeSystem",
-    "identifier": [{"value": "COVID_SYMPTOMS"}],
-    "name": "COVID-19 Symptoms",
-    "status": "active",
-    "content": "complete"
-}).json()
+=== "curl"
+    ```bash
+    curl -X POST {API_URL}/v4.3.0/codesystem/ \
+      -H "Content-Type: application/json" \
+      -d '{
+        "resourceType": "CodeSystem",
+        "url": "urn:codoc:fhir:codesystem:COVID_SYMPTOMS",
+        "identifier": [
+          {
+            "use": "official",
+            "value": "1"
+          },
+          {
+            "use": "usual",
+            "value": "COVID_SYMPTOMS"
+          }
+        ],
+        "name": "COVID-19 Symptoms",
+        "title": "COVID-19 Symptoms",
+        "status": "active",
+        "content": "complete"
+      }'
+    ```
 
-# 2. Add concepts
-concepts = [
-    {"code": "FEVER", "display": "Fever"},
-    {"code": "COUGH", "display": "Dry cough"},
-    {"code": "FATIGUE", "display": "Intense fatigue"},
-    {"code": "ANOSMIA", "display": "Loss of smell"},
-    {"code": "AGEUSIA", "display": "Loss of taste"}
-]
-
-requests.post(
-    "/v4.3.0/codesystem/COVID_SYMPTOMS/concept/",
-    json={"concept": concepts}
-)
-```
-
-### Use in an Observation
-
-```python
-observation = {
-    "resourceType": "Observation",
-    "status": "final",
-    "code": {
-        "coding": [{
-            "system": "http://codoc.com/fhir/codesystem/COVID_SYMPTOMS",
-            "code": "FEVER",
-            "display": "Fever"
-        }]
-    },
-    "subject": {"reference": "Patient/123"},
-    "effectiveDateTime": "2024-01-15T10:00:00Z"
-}
-```
+=== "Python"
+    ```python
+    # 1. Create the thesaurus
+    thesaurus = requests.post("{API_URL}/v4.3.0/codesystem/", json={
+        "resourceType": "CodeSystem",
+        "url": "urn:codoc:fhir:codesystem:COVID_SYMPTOMS",
+        "identifier": [
+          {
+            "use": "official",
+            "value": "1"
+          },
+          {
+            "use": "usual",
+            "value": "COVID_SYMPTOMS"
+          }
+        ],
+        "name": "COVID-19 Symptoms",
+        "title": "COVID-19 Symptoms",
+        "status": "active",
+        "content": "complete"
+    }).json()
+    
+    # 2. Add concepts
+    concepts = [
+        {"code": "FEVER", "display": "Fever"},
+        {"code": "COUGH", "display": "Dry cough"},
+        {"code": "FATIGUE", "display": "Intense fatigue"},
+        {"code": "ANOSMIA", "display": "Loss of smell"},
+        {"code": "AGEUSIA", "display": "Loss of taste"}
+    ]
+    
+    requests.post(
+        "{API_URL}/v4.3.0/codesystem/COVID_SYMPTOMS/concept/",
+        json={"concept": concepts}
+    )
+    ```
 
 ## Related Resources
 

@@ -23,7 +23,7 @@ A **patient journey** includes:
     import requests
     from datetime import datetime
     
-    BASE_URL = "http://localhost:8000/v4.3.0"
+    BASE_URL = "{API_URL}"
     
     # Prerequisites: care units
     emergency = {"id": 1, "name": "Emergency"}
@@ -31,7 +31,7 @@ A **patient journey** includes:
     icu = {"id": 3, "name": "Intensive Care"}
     
     # Patient
-    patient = requests.post(f"{BASE_URL}/patient/", json={
+    patient = requests.post(f"{BASE_URL}/v4.3.0/patient/", json={
         "resourceType": "Patient",
         "identifier": [{"value": "IPP789456"}],
         "name": [{"family": "Johnson", "given": ["John"]}],
@@ -41,7 +41,7 @@ A **patient journey** includes:
     patient_id = patient["id"]
     
     # Admission to Emergency
-    stay = requests.post(f"{BASE_URL}/encounter/", json={
+    stay = requests.post(f"{BASE_URL}/v4.3.0/encounter/", json={
         "resourceType": "Encounter",
         "status": "in-progress",
         "class": {"code": "IMP"},
@@ -61,7 +61,7 @@ A **patient journey** includes:
 === "Python"
     ```python
     # Create admission movement to Emergency
-    mvt1 = requests.post(f"{BASE_URL}/encounter/", json={
+    mvt1 = requests.post(f"{BASE_URL}/v4.3.0/encounter/", json={
         "resourceType": "Encounter",
         "status": "finished",
         "class": {"code": "IMP"},
@@ -100,7 +100,7 @@ A **patient journey** includes:
     <p>Acute ST-elevation coronary syndrome. Cardiology pathway activated.</p>
     """
     
-    doc1 = requests.post(f"{BASE_URL}/documentreference/", json={
+    doc1 = requests.post(f"{BASE_URL}/v4.3.0/documentreference/", json={
         "resourceType": "DocumentReference",
         "status": "current",
         "subject": {"reference": f"Patient/{patient_id}"},
@@ -125,7 +125,7 @@ A **patient journey** includes:
 === "Python"
     ```python
     # Create movement to Cardiology
-    mvt2 = requests.post(f"{BASE_URL}/encounter/", json={
+    mvt2 = requests.post(f"{BASE_URL}/v4.3.0/encounter/", json={
         "resourceType": "Encounter",
         "status": "finished",
         "class": {"code": "IMP"},
@@ -158,7 +158,7 @@ A **patient journey** includes:
     <p>Transfer to Intensive Care for close monitoring.</p>
     """
     
-    doc2 = requests.post(f"{BASE_URL}/documentreference/", json={
+    doc2 = requests.post(f"{BASE_URL}/v4.3.0/documentreference/", json={
         "resourceType": "DocumentReference",
         "status": "current",
         "subject": {"reference": f"Patient/{patient_id}"},
@@ -181,7 +181,7 @@ A **patient journey** includes:
 === "Python"
     ```python
     # Movement to Intensive Care (in progress)
-    mvt3 = requests.post(f"{BASE_URL}/encounter/", json={
+    mvt3 = requests.post(f"{BASE_URL}/v4.3.0/encounter/", json={
         "resourceType": "Encounter",
         "status": "in-progress",
         "class": {"code": "IMP"},
@@ -203,7 +203,7 @@ A **patient journey** includes:
 === "Python"
     ```python
     # Elevated troponin
-    obs1 = requests.post(f"{BASE_URL}/observation/", json={
+    obs1 = requests.post(f"{BASE_URL}/v4.3.0/observation/", json={
         "resourceType": "Observation",
         "status": "final",
         "code": {"coding": [{"code": "TROPONINE", "display": "Troponin Ic"}]},
@@ -214,7 +214,7 @@ A **patient journey** includes:
     }).json()
     
     # BNP
-    obs2 = requests.post(f"{BASE_URL}/observation/", json={
+    obs2 = requests.post(f"{BASE_URL}/v4.3.0/observation/", json={
         "resourceType": "Observation",
         "status": "final",
         "code": {"coding": [{"code": "BNP", "display": "BNP"}]},
@@ -232,7 +232,7 @@ A **patient journey** includes:
 === "Python"
     ```python
     # Close the Intensive Care movement
-    mvt3_updated = requests.put(f"{BASE_URL}/encounter/movement/{mvt3_id}/", json={
+    mvt3_updated = requests.put(f"{BASE_URL}/v4.3.0/encounter/{mvt3_id}/", json={
         "resourceType": "Encounter",
         "status": "finished",
         "class": {"code": "IMP"},
@@ -246,7 +246,7 @@ A **patient journey** includes:
     }).json()
     
     # Close the stay
-    stay_updated = requests.put(f"{BASE_URL}/encounter/stay/{stay_id}/", json={
+    stay_updated = requests.put(f"{BASE_URL}/v4.3.0/encounter/{stay_id}/", json={
         "resourceType": "Encounter",
         "status": "finished",
         "class": {"code": "IMP"},
@@ -285,7 +285,7 @@ A **patient journey** includes:
     <p>Cardiology appointment at 1 month. Control echocardiography at 3 months.</p>
     """
     
-    doc3 = requests.post(f"{BASE_URL}/documentreference/", json={
+    doc3 = requests.post(f"{BASE_URL}/v4.3.0/documentreference/", json={
         "resourceType": "DocumentReference",
         "status": "current",
         "subject": {"reference": f"Patient/{patient_id}"},
@@ -348,10 +348,10 @@ The complete script is available below. It automatically creates the entire pati
 import requests
 import base64
 
-BASE_URL = "http://localhost:8000/v4.3.0"
+BASE_URL = "{API_URL}"
 
 # Create patient and stay
-patient = requests.post(f"{BASE_URL}/patient/", json={
+patient = requests.post(f"{BASE_URL}/v4.3.0/patient/", json={
     "resourceType": "Patient",
     "identifier": [{"value": "IPP789456"}],
     "name": [{"family": "Johnson", "given": ["John"]}],
@@ -360,7 +360,7 @@ patient = requests.post(f"{BASE_URL}/patient/", json={
 }).json()
 patient_id = patient["id"]
 
-stay = requests.post(f"{BASE_URL}/encounter/", json={
+stay = requests.post(f"{BASE_URL}/v4.3.0/encounter/", json={
     "resourceType": "Encounter",
     "status": "in-progress",
     "class": {"code": "IMP"},

@@ -11,7 +11,6 @@ This section guides you through your first API calls with the Codoc FHIR API.
 The Codoc FHIR API is a RESTful API that implements the FHIR R4B standard. It requires:
 
 - ✅ An accessible Codoc FHIR server (HTTP/HTTPS)
-- ✅ A PostgreSQL database with the Codoc data model
 - ✅ An HTTP client (curl, Postman, or HTTP library)
 
 ## Quick Access
@@ -23,28 +22,6 @@ The Codoc FHIR API is a RESTful API that implements the FHIR R4B standard. It re
     <a href="quickstart/">Get Started →</a>
   </div>
 </div>
-
-## What You'll Need
-
-### Technical Environment
-
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| **Python** | 3.8+ | 3.11+ |
-| **PostgreSQL** | 12+ | 14+ |
-
-### Development Tools
-
-- **HTTP Client**: curl, Postman, Insomnia, or HTTPie
-- **JSON Editor**: jq, python -m json.tool
-- **Terminal**: bash, zsh, PowerShell
-
-### Recommended Knowledge
-
-- HTTP/REST API basics
-- JSON format
-- Command line (bash/zsh)
-- FHIR concepts (optional but helpful)
 
 ## Key Concepts
 
@@ -83,12 +60,6 @@ All exchanges use JSON:
 ```http
 Content-Type: application/json
 Accept: application/json
-```
-
-FHIR alternative:
-```http
-Content-Type: application/fhir+json
-Accept: application/fhir+json
 ```
 
 ## Known Limitations
