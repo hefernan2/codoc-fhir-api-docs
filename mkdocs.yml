@@ -1,0 +1,184 @@
+site_name: Codoc FHIR API
+site_description: FHIR API documentation for Codoc hospital systems
+site_author: Codoc Team
+site_url: https://hefernan2.github.io/codoc-fhir-api-docs/
+docs_dir: docs
+
+# Repository
+repo_name: hefernan2/codoc-fhir-api-docs
+repo_url: https://github.com/hefernan2/codoc-fhir-api-docs
+edit_uri: edit/main/docs/
+
+# Copyright
+copyright: Copyright &copy; 2025 Codoc
+
+# Configuration
+theme:
+  name: material
+  language: en
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/toggle-switch-off
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+  
+  font:
+    text: Roboto
+    code: Roboto Mono
+  
+  icon:
+    repo: fontawesome/brands/github
+  
+  logo: stylesheets/assets/logo.svg
+  favicon: stylesheets/assets/favicon.png
+  
+  features:
+    # Navigation
+    - navigation.instant      # Instant loading
+    - navigation.tracking     # URL tracking
+    - navigation.tabs         # Navigation tabs
+    - navigation.tabs.sticky  # Sticky tabs
+    - navigation.sections     # Navigation sections
+    - navigation.expand       # Expand navigation by default
+    - navigation.path         # Breadcrumbs
+    - navigation.indexes      # Section index pages
+    - navigation.top          # Back to top button
+    
+    # Search
+    - search.suggest          # Search suggestions
+    - search.highlight        # Search highlighting
+    - search.share            # Share search link
+    
+    # Header
+    - header.autohide         # Auto-hide header
+    
+    # Content
+    - content.code.copy       # Copy button for code blocks
+    - content.code.annotate   # Code annotations
+    - content.tabs.link       # Link content tabs
+    - content.tooltips        # Tooltips
+    
+    # Table of contents
+    - toc.follow              # Follow TOC
+    - toc.integrate           # Integrate TOC
+
+# Plugins
+plugins:
+  - search:
+      lang: 
+        - en
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+  - minify:
+      minify_html: true
+      minify_js: true
+      minify_css: true
+      htmlmin_opts:
+        remove_comments: true
+      cache_safe: true
+
+# Extensions
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+  - toc:
+      permalink: true
+      permalink_title: Permanent link
+      toc_depth: 3
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Extra CSS/JS
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/extra.js
+
+# Extra
+extra:
+  version:
+    provider: mike
+    default: latest
+  
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/codoc-os
+      name: Codoc sur GitHub
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/codoc-data-schemas/
+      name: Codoc sur PyPI
+
+# Navigation structure
+nav:
+  - Home: index.md
+  
+  - Getting Started:
+    - getting-started/index.md
+    - Quick Start: getting-started/quickstart.md
+  
+  - API Reference:
+    - api/index.md
+    - Patient: api/patient.md
+    - Organization: api/organization.md
+    - Encounter: api/encounter.md
+    - DocumentReference: api/documentreference.md
+    - Observation: api/observation.md
+    - Observation (Patient Data): api/observation-patient-data.md
+    - Observation (Phenotype): api/observation-phenotype.md
+    - Procedure: api/procedure.md
+    - MedicationRequest: api/medicationrequest.md
+    - DiagnosticReport: api/diagnosticreport.md
+    - CodeSystem: api/codesystem.md
+  
+  - Guides:
+    - guides/index.md
+    - Create a patient record: guides/patient-record.md
+    - Manage hospital hierarchy: guides/organization-hierarchy.md
+    - Semantic enrichment: guides/semantic-enrichment.md
+    - Custom thesaurus: guides/custom-thesaurus.md
+    - Patient journey: guides/patient-journey.md
