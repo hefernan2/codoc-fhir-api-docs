@@ -197,11 +197,6 @@ The FHIR API is built on top of Codoc's data model, providing seamless integrati
 
 This direct mapping eliminates transformation layers and ensures data consistency across all Codoc applications.
 
-## Important Limitation
-
-!!! warning "LIST operations not supported"
-    `GET` requests without ID (e.g., `GET /patient/`) return **HTTP 405 Method Not Allowed**. Always use targeted requests with the resource ID (e.g., `GET /patient/123/`).
-
 ## Rate Limiting
 
 !!! info "API rate limiting"

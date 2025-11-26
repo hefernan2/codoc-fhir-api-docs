@@ -426,7 +426,7 @@ If needed, you can delete a resource:
 | **204** | No Content - Deleted | Successful DELETE |
 | **400** | Bad Request - Invalid data | Malformed JSON, missing required field |
 | **404** | Not Found - Resource not found | Non-existent ID |
-| **405** | Method Not Allowed | GET on list (not supported) |
+| **405** | Method Not Allowed | Unsupported operation on resource |
 | **500** | Internal Server Error | Server error |
 
 ## Next Steps

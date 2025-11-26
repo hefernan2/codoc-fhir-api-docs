@@ -64,14 +64,8 @@ Accept: application/json
 
 ## Known Limitations
 
-!!! warning "LIST operations not supported"
-    `GET` requests without a specific ID return **HTTP 405**:
-    
-    ❌ `GET /v4.3.0/patient/` → Error 405  
-    ✅ `GET /v4.3.0/patient/123/` → OK
-
-!!! info "SEARCH operations coming soon"
-    FHIR search parameters (`?name=Smith`) are not yet implemented.
+!!! info "Advanced search coming soon"
+    Basic LIST with pagination is supported (`GET /v4.3.0/patient/`), but FHIR search parameters (`?name=Smith`) are not yet implemented.
 
 ## Next Step
 

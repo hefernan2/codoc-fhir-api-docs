@@ -94,15 +94,56 @@ All resources support standard CRUD operations:
 |-----------|--------|----------|-------------|
 | **Create** | <span class="http-method post">POST</span> | `/v4.3.0/{resource}/` | Create a new resource |
 | **Read** | <span class="http-method get">GET</span> | `/v4.3.0/{resource}/{id}/` | Retrieve a resource by ID |
+| **List (Search)** | <span class="http-method get">GET</span> | `/v4.3.0/{resource}/` | Search resources with pagination |
 | **Update (complete)** | <span class="http-method put">PUT</span> | `/v4.3.0/{resource}/{id}/` | Replace completely |
 | **Update (partial)** | <span class="http-method patch">PATCH</span> | `/v4.3.0/{resource}/{id}/` | Modify specific fields |
 | **Delete** | <span class="http-method delete">DELETE</span> | `/v4.3.0/{resource}/{id}/` | Delete permanently |
 
-!!! warning "LIST Limitation"
-    **LIST** operations are not supported. Requests without an ID return **HTTP 405**:
-    
-    ❌ `GET /v4.3.0/patient/` → Error 405  
-    ✅ `GET /v4.3.0/patient/123/` → OK
+## List / Search
+
+The List action retrieves a collection of resources with pagination support.
+
+**Endpoint:** `GET /v4.3.0/{resource}/`
+
+### Pagination Parameters
+
+| Parameter | Default | Max | Description |
+|-----------|---------|-----|-------------|
+| `_count` | 20 | 100 | Number of resources per page |
+| `page` | 1 | - | Page number for navigation |
+
+### Response Structure
+
+The response is a FHIR Bundle of type `searchset`:
+
+```json
+{
+  "resourceType": "Bundle",
+  "type": "searchset",
+  "total": 45,
+  "link": [
+    {"relation": "self", "url": "{API_URL}/v4.3.0/patient/?_count=10"},
+    {"relation": "next", "url": "{API_URL}/v4.3.0/patient/?_count=10&page=2"}
+  ],
+  "entry": [
+    {"resource": {"resourceType": "Patient", "id": "1", ...}},
+    {"resource": {"resourceType": "Patient", "id": "2", ...}}
+  ]
+}
+```
+
+### Example
+
+```bash
+# List patients with 5 per page
+curl "{API_URL}/v4.3.0/patient/?_count=5"
+
+# Get page 2
+curl "{API_URL}/v4.3.0/patient/?_count=5&page=2"
+```
+
+!!! info "Current Limitations"
+    Advanced search parameters (e.g., `?name=John`, `?birthdate=1990`) are not yet implemented. Only basic listing with pagination is supported.
 
 ## Request Format
 
@@ -134,7 +175,7 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
 | **204** | No Content - Deletion successful | Successful DELETE |
 | **400** | Bad Request - Invalid data | Malformed JSON, missing required field |
 | **404** | Not Found - Resource not found | Non-existent ID |
-| **405** | Method Not Allowed - Operation not supported | GET without ID (LIST) |
+| **405** | Method Not Allowed - Operation not supported | Unsupported method on endpoint |
 | **409** | Conflict - Constraint violated | Duplicate identifier |
 | **500** | Internal Server Error | Application bug |
 

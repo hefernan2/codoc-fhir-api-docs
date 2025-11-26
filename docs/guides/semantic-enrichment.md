@@ -226,23 +226,22 @@ Now let's create the phenotypes found in the text using the new component-based 
 
 === "Python"
     ```python
-    # Note: The API does not support LIST, so you will need to retrieve
-    # phenotypes individually via their IDs
-    # In a real case, you would store the IDs during creation
+    # List all phenotypes with pagination
+    response = requests.get(f"{BASE_URL}/v4.3.0/observation/phenotype/?_count=50")
+    bundle = response.json()
     
-    # Example of retrieving a phenotype
-    phenotype_id = 1  # ID obtained during creation
-    pheno = requests.get(f"{BASE_URL}/v4.3.0/observation/phenotype/{phenotype_id}/").json()
-    
-    print(f"\n📋 Retrieved phenotype:")
-    print(f"   Code: {pheno['code']['coding'][0]['code']}")
-    print(f"   Display: {pheno['code']['coding'][0]['display']}")
-    print(f"   Value: {pheno['valueString']}")
-    
-    # Retrieve components
-    for component in pheno.get('component', []):
-        comp_code = component['code'].get('text', component['code'].get('coding', [{}])[0].get('code', ''))
-        print(f"   {comp_code}: {component.get('valueString', component.get('valueDecimal', component.get('valueInteger')))}")
+    print(f"Total phenotypes: {bundle['total']}")
+    for entry in bundle.get('entry', []):
+        pheno = entry['resource']
+        print(f"\n📋 Phenotype ID: {pheno['id']}")
+        print(f"   Code: {pheno['code']['coding'][0]['code']}")
+        print(f"   Display: {pheno['code']['coding'][0]['display']}")
+        print(f"   Value: {pheno['valueString']}")
+        
+        # Retrieve components
+        for component in pheno.get('component', []):
+            comp_code = component['code'].get('text', component['code'].get('coding', [{}])[0].get('code', ''))
+            print(f"   {comp_code}: {component.get('valueString', component.get('valueDecimal', component.get('valueInteger')))}")
     ```
 
 ## Managing Medical Contexts

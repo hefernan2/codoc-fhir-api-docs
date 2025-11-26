@@ -176,6 +176,7 @@ nav:
     - MedicationRequest: api/medicationrequest.md
     - DiagnosticReport: api/diagnosticreport.md
     - CodeSystem: api/codesystem.md
+    - Bundle (Bulk Create): api/bundle.md
   
   - Guides:
     - guides/index.md

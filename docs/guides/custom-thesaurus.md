@@ -267,16 +267,19 @@ Once created, use your thesaurus to code observations:
 
 ## Filter Observations by Thesaurus
 
-Although the API does not support LIST, you can filter on the application side:
+You can list observations and filter by thesaurus on the application side:
 
 ```python
-# List of observation IDs (obtained from your database)
-observation_ids = [1, 2, 3, 4, 5]
+import requests
 
-# Retrieve and filter
+# List observations with pagination
+response = requests.get(f"{BASE_URL}/v4.3.0/observation/?_count=50")
+bundle = response.json()
+
+# Filter observations by COVID thesaurus
 covid_observations = []
-for obs_id in observation_ids:
-    obs = requests.get(f"{BASE_URL}/v4.3.0/observation/{obs_id}/").json()
+for entry in bundle.get('entry', []):
+    obs = entry['resource']
     
     # Check if the code belongs to the COVID thesaurus
     system = obs['code']['coding'][0].get('system', '')
