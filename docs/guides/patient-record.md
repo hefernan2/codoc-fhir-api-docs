@@ -20,7 +20,7 @@ Let's start by creating a care unit that will manage the patient.
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/organization/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/organization/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Organization",
@@ -53,7 +53,7 @@ Let's start by creating a care unit that will manage the patient.
 === "curl"
     ```bash
     # Replace {unit_id} with ID from step 1
-    curl -X POST {API_URL}/v4.3.0/patient/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/patient/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Patient",
@@ -85,7 +85,7 @@ Let's start by creating a care unit that will manage the patient.
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/encounter/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/encounter/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Encounter",

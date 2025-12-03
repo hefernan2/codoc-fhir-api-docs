@@ -48,7 +48,7 @@ This resource filters on `thesaurus_code = "Acte"` (configurable via `THESAURUS_
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/procedure/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/procedure/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Procedure",

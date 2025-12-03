@@ -136,10 +136,10 @@ The response is a FHIR Bundle of type `searchset`:
 
 ```bash
 # List patients with 5 per page
-curl "{API_URL}/v4.3.0/patient/?_count=5"
+curl -u username:password "{API_URL}/v4.3.0/patient/?_count=5"
 
 # Get page 2
-curl "{API_URL}/v4.3.0/patient/?_count=5&page=2"
+curl -u username:password "{API_URL}/v4.3.0/patient/?_count=5&page=2"
 ```
 
 !!! info "Current Limitations"

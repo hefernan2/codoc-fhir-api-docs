@@ -59,7 +59,7 @@ An intra-hospital transfer with `partOf` pointing to a Stay.
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/encounter/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/encounter/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Encounter",
@@ -100,7 +100,7 @@ An intra-hospital transfer with `partOf` pointing to a Stay.
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/encounter/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/encounter/ \
       -H "Content-Type: application/json" \
       -d '{
             "resourceType": "Encounter",
@@ -122,7 +122,7 @@ An intra-hospital transfer with `partOf` pointing to a Stay.
 
 === "curl"
     ```bash
-    curl -X PATCH {API_URL}/v4.3.0/encounter/stay/1/ \
+    curl -u username:password -X PATCH {API_URL}/v4.3.0/encounter/stay/1/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Encounter",

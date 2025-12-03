@@ -70,7 +70,7 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/codesystem/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/codesystem/ \
       -H "Content-Type: application/json" \
       -d '{
           "resourceType": "CodeSystem",
@@ -120,7 +120,7 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 
 === "curl (single concept)"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/ \
     -H "Content-Type: application/json" \
     -d   '{
           "resourceType": "CodeSystemConcept",
@@ -131,7 +131,7 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 
 === "curl (multiple concepts)"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/ \
       -H "Content-Type: application/json" \
       -d '{
         "concept": [
@@ -170,7 +170,7 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 
 === "curl"
     ```bash
-    curl {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/{CONCEPT_ID}
+    curl -u username:password {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/{CONCEPT_ID}
     ```
 
 **Response:**
@@ -200,7 +200,7 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 
 === "curl"
     ```bash
-    curl -X PUT {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/{PENICILLIN_ID}/ \
+    curl -u username:password -X PUT {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/{PENICILLIN_ID}/ \
       -H "Content-Type: application/json" \
       -d '{
             "resourceType": "CodeSystemConcept",
@@ -213,7 +213,7 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 
 === "curl"
     ```bash
-    curl -X DELETE {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/{CONCEPT_ID}/
+    curl -u username:password -X DELETE {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/{CONCEPT_ID}/
     ```
 
 ## Use Cases
@@ -222,7 +222,7 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/codesystem/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/codesystem/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "CodeSystem",

@@ -46,7 +46,7 @@ Filters on `thesaurus_code = "Diagnostic"` (configurable via `THESAURUS_CODE_DIA
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/diagnosticreport/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/diagnosticreport/ \
       -H "Content-Type: application/json" \
       -d '{
             "resourceType": "DiagnosticReport",

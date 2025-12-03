@@ -113,7 +113,7 @@ When these 3 conditions are met, bulk optimization is **automatically enabled**:
 === "curl"
 
     ```bash
-    curl -X POST {API_URL}/v4.3.0/bundle/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/bundle/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Bundle",

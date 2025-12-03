@@ -20,7 +20,7 @@ A **thesaurus** (or CodeSystem in FHIR) is a controlled vocabulary that contains
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/codesystem/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/codesystem/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "CodeSystem",
@@ -74,7 +74,7 @@ A **thesaurus** (or CodeSystem in FHIR) is a controlled vocabulary that contains
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/ \
       -H "Content-Type: application/json" \
       -d '{
         "code": "PENICILLINE",
@@ -293,7 +293,7 @@ print(f"✅ {len(covid_observations)} COVID observations found")
 
 === "curl"
     ```bash
-    curl -X DELETE {API_URL}/v4.3.0/codesystem/ALLERGIES/
+    curl -u username:password -X DELETE {API_URL}/v4.3.0/codesystem/ALLERGIES/
     ```
 
 === "Python"

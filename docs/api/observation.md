@@ -46,7 +46,7 @@ This resource automatically filters on `thesaurus_code = "Biologie"` (code confi
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/observation/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/observation/ \
       -H "Content-Type: application/json" \
       -d '{
             "resourceType": "Observation",

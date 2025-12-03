@@ -42,7 +42,7 @@ The **DocumentReference** resource represents clinical documents (reports, notes
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/documentreference/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/documentreference/ \
       -H "Content-Type: application/json" \
       -d '{
             "resourceType": "DocumentReference",

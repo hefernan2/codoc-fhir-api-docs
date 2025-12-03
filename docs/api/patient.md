@@ -58,7 +58,7 @@ The **Patient** resource represents patient identity and demographic data.
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/patient/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/patient/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Patient",
@@ -139,7 +139,7 @@ The **Patient** resource represents patient identity and demographic data.
 
 === "curl"
     ```bash
-    curl {API_URL}/v4.3.0/patient/123/
+    curl -u username:password {API_URL}/v4.3.0/patient/123/
     ```
 
 === "Python"
@@ -154,7 +154,7 @@ The **Patient** resource represents patient identity and demographic data.
 
 ## Declare a Death
 
-    curl -X PATCH {API_URL}/v4.3.0/patient/123/ \
+    curl -u username:password -X PATCH {API_URL}/v4.3.0/patient/123/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Patient",
@@ -162,7 +162,7 @@ The **Patient** resource represents patient identity and demographic data.
       }'
     ```
 
-    curl -X PATCH {API_URL}/v4.3.0/patient/123/ \
+    curl -u username:password -X PATCH {API_URL}/v4.3.0/patient/123/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Patient",
@@ -173,7 +173,7 @@ The **Patient** resource represents patient identity and demographic data.
 !!! warning "Mutual exclusivity"
     Use **either** `deceasedBoolean` **or** `deceasedDateTime`, never both.
 
-    curl -X PATCH {API_URL}/v4.3.0/patient/456/ \
+    curl -u username:password -X PATCH {API_URL}/v4.3.0/patient/456/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Patient",

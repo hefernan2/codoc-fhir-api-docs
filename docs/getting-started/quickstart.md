@@ -21,7 +21,7 @@ Start by verifying that the API responds:
 
 === "curl"
     ```bash
-    curl {API_URL}/v4.3.0/metadata/
+    curl -u username:password {API_URL}/v4.3.0/metadata/
     ```
 
 === "Python"
@@ -51,7 +51,7 @@ Let's create your first FHIR patient:
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/patient/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/patient/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Patient",
@@ -164,7 +164,7 @@ Use the `id` to retrieve the patient data:
 
 === "curl"
     ```bash
-    curl {API_URL}/v4.3.0/patient/1/
+    curl -u username:password {API_URL}/v4.3.0/patient/1/
     ```
 
 === "Python"
@@ -194,7 +194,7 @@ Let's add a phone number:
 
 === "curl"
     ```bash
-    curl -X PATCH {API_URL}/v4.3.0/patient/1/ \
+    curl -u username:password -X PATCH {API_URL}/v4.3.0/patient/1/ \
       -H "Content-Type: application/json" \
       -d '{
         "telecom": [
@@ -254,7 +254,7 @@ Let's create a hospital with a department:
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/organization/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/organization/ \
       -H 'Content-Type: application/json' \
       -d '{
             "resourceType": "Organization",
@@ -284,7 +284,7 @@ Let's create a hospital with a department:
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/organization/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/organization/ \
       -H 'Content-Type: application/json' \
       -d '{
             "resourceType": "Organization",
@@ -317,7 +317,7 @@ Let's create a hospital with a department:
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/organization/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/organization/ \
       -H 'Content-Type: application/json' \
       -d '{
         "resourceType": "Organization",
@@ -352,7 +352,7 @@ Let's create an admission for our patient in the cardiology department:
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/encounter/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/encounter/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Encounter",
@@ -395,7 +395,7 @@ If needed, you can delete a resource:
 
 === "curl"
     ```bash
-    curl -X DELETE {API_URL}/v4.3.0/patient/1/
+    curl -u username:password -X DELETE {API_URL}/v4.3.0/patient/1/
     ```
 
 === "Python"

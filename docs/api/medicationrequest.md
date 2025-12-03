@@ -49,7 +49,7 @@ Filters on `thesaurus_code = "Prescription"` (configurable via `THESAURUS_CODE_M
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/medicationrequest/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/medicationrequest/ \
       -H "Content-Type: application/json" \
       -d '{
             "resourceType": "MedicationRequest",

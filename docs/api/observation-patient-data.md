@@ -36,7 +36,7 @@ This sub-resource represents **patient-specific traits** (weight, height, allerg
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/observation/patient-data/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/observation/patient-data/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Observation",

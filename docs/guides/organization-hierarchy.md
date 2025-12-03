@@ -18,7 +18,7 @@ Site (Hospital)
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/organization/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/organization/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Organization",

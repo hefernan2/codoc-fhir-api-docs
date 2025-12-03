@@ -54,7 +54,7 @@ This sub-resource represents **phenotypes automatically extracted** from clinica
 
 === "curl"
     ```bash
-    curl -X POST {API_URL}/v4.3.0/observation/phenotype/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/observation/phenotype/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Observation",

@@ -79,7 +79,7 @@ curl {API_URL}/v4.3.0/metadata
 === "curl"
 
     ```bash
-    curl -X POST {API_URL}/v4.3.0/patient/ \
+    curl -u username:password -X POST {API_URL}/v4.3.0/patient/ \
       -H 'Content-Type: application/json' \
       -d '{
       "resourceType": "Patient",
@@ -153,7 +153,7 @@ curl {API_URL}/v4.3.0/metadata
 ### 3. Retrieve the patient
 
 ```bash
-curl {API_URL}/v4.3.0/patient/123/
+curl -u username:password {API_URL}/v4.3.0/patient/123/
 ```
 
 !!! success "Ready to explore?"
