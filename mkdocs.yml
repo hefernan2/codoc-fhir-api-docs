@@ -185,3 +185,10 @@ nav:
     - Semantic enrichment: guides/semantic-enrichment.md
     - Custom thesaurus: guides/custom-thesaurus.md
     - Patient journey: guides/patient-journey.md
+  
+  - Implementation Guide:
+    - implementation-guide/index.md
+    - Profiles: implementation-guide/profiles.md
+    - Extensions: implementation-guide/extensions.md
+    - Terminology: implementation-guide/terminology.md
+    - Capability Statement: implementation-guide/capability-statement.md

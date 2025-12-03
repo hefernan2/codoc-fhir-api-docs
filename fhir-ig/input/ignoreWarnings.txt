@@ -1,0 +1,18 @@
+# Codoc FHIR IG - Ignored Warnings
+# This file contains patterns for warnings that can be safely ignored
+
+# Example references that don't resolve (used in examples)
+Reference to draft CodeSystem http://hl7.org/fhir/observation-status
+Reference to draft CodeSystem http://hl7.org/fhir/encounter-status
+Reference to draft CodeSystem http://hl7.org/fhir/document-reference-status
+Reference to draft CodeSystem http://hl7.org/fhir/administrative-gender
+
+# Example resource references
+The link 'Patient/1' for "Patient/1" cannot be resolved
+The link 'Patient/123' for "Patient/123" cannot be resolved
+The link 'Patient/456' for "Patient/456" cannot be resolved
+The link 'Organization/department-1' for "Organization/department-1" cannot be resolved
+The link 'Organization/site-1' for "Organization/site-1" cannot be resolved
+The link 'Organization/unit-1' for "Organization/unit-1" cannot be resolved
+The link 'Encounter/1' for "Encounter/1" cannot be resolved
+The link 'DocumentReference/10' for "DocumentReference/10" cannot be resolved

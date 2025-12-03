@@ -1,0 +1,140 @@
+# ╭──────────────────────────────────────────────────────────────────────────────╮
+# │  Codoc FHIR Implementation Guide - SUSHI Configuration                       │
+# ╰──────────────────────────────────────────────────────────────────────────────╯
+
+id: codoc.fhir.ig
+canonical: https://codoc.co/fhir/ig
+version: 0.1.0
+name: CodocFHIRImplementationGuide
+title: Codoc FHIR Implementation Guide
+status: draft
+publisher:
+  name: Codoc
+  url: https://codoc.co
+  email: contact@codoc.co
+contact:
+  - name: Codoc Team
+    telecom:
+      - system: url
+        value: https://codoc.co
+
+description: >-
+  This Implementation Guide defines the FHIR profiles, extensions, and 
+  value sets used by the Codoc hospital data platform. It provides a 
+  standardized way to represent clinical data including patients, 
+  hospital organizations, encounters, documents, and NLP-extracted phenotypes.
+
+license: CC-BY-4.0
+fhirVersion: 4.3.0
+copyrightYear: 2025+
+releaseLabel: ci-build
+jurisdiction: urn:iso:std:iso:3166#FR "France"
+
+# ╭────────────────────────────────────────────────────────────────────────────╮
+# │  Dependencies                                                              │
+# ╰────────────────────────────────────────────────────────────────────────────╯
+dependencies:
+  hl7.fhir.r4b.core: 4.3.0
+
+# ╭────────────────────────────────────────────────────────────────────────────╮
+# │  Parameters                                                                │
+# ╰────────────────────────────────────────────────────────────────────────────╯
+parameters:
+  show-hierarchies: true
+  path-resource:
+    - input/resources
+  path-pages:
+    - input/pagecontent
+  path-expansion-params: ../input/expansion-parameters.json
+  active-tables: true
+  apply-version: true
+  apply-publisher: true
+  apply-contact: true
+  apply-jurisdiction: true
+  generate:
+    - xml
+    - json
+  special-url:
+    - https://codoc.co/fhir/StructureDefinition
+    - https://codoc.co/fhir/CodeSystem
+    - https://codoc.co/fhir/ValueSet
+
+# ╭────────────────────────────────────────────────────────────────────────────╮
+# │  Pages                                                                     │
+# ╰────────────────────────────────────────────────────────────────────────────╯
+pages:
+  index.md:
+    title: Home
+  background.md:
+    title: Background
+  profiles.md:
+    title: Profiles
+  extensions.md:
+    title: Extensions
+  terminology.md:
+    title: Terminology
+  capability-statement.md:
+    title: Capability Statement
+  must-support.md:
+    title: Must Support
+  security.md:
+    title: Security
+  artifacts.md:
+    title: Artifacts Summary
+  downloads.md:
+    title: Downloads
+
+# ╭────────────────────────────────────────────────────────────────────────────╮
+# │  Menu                                                                      │
+# ╰────────────────────────────────────────────────────────────────────────────╯
+menu:
+  Home: index.html
+  Background: background.html
+  Specification:
+    Profiles: profiles.html
+    Extensions: extensions.html
+    Terminology: terminology.html
+    Must Support: must-support.html
+  Capability Statement: capability-statement.html
+  Security: security.html
+  Artifacts: artifacts.html
+  Downloads: downloads.html
+
+# ╭────────────────────────────────────────────────────────────────────────────╮
+# │  Groups                                                                    │
+# ╰────────────────────────────────────────────────────────────────────────────╯
+groups:
+  PatientProfiles:
+    name: Patient Profiles
+    description: Profiles for patient identity and demographics
+    resources:
+      - StructureDefinition/CodocPatient
+  
+  OrganizationProfiles:
+    name: Organization Profiles
+    description: Profiles for hospital organizational hierarchy
+    resources:
+      - StructureDefinition/CodocOrganization
+  
+  ClinicalProfiles:
+    name: Clinical Profiles
+    description: Profiles for clinical encounters and documents
+    resources:
+      - StructureDefinition/CodocEncounter
+      - StructureDefinition/CodocDocumentReference
+  
+  ObservationProfiles:
+    name: Observation Profiles
+    description: Profiles for various observation types
+    resources:
+      - StructureDefinition/CodocLabObservation
+      - StructureDefinition/CodocPatientDataObservation
+      - StructureDefinition/CodocPhenotypeObservation
+  
+  ProcedureProfiles:
+    name: Procedure & Medication Profiles
+    description: Profiles for procedures and medication requests
+    resources:
+      - StructureDefinition/CodocProcedure
+      - StructureDefinition/CodocMedicationRequest
+      - StructureDefinition/CodocDiagnosticReport
