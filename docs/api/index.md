@@ -86,18 +86,14 @@ The API exposes **10 FHIR resources** covering the entire clinical data model:
 | **[DiagnosticReport](diagnosticreport/)** | `/v4.3.0/diagnosticreport/` | Diagnostic reports |
 | **[CodeSystem](codesystem/)** | `/v4.3.0/codesystem/` | Medical thesauri (ICD10, ATC, CCAM, etc.) |
 
-## Common CRUD Operations
+## Read Operations
 
-All resources support standard CRUD operations:
+All resources support standard read operations:
 
 | Operation | Method | Endpoint | Description |
 |-----------|--------|----------|-------------|
-| **Create** | <span class="http-method post">POST</span> | `/v4.3.0/{resource}/` | Create a new resource |
 | **Read** | <span class="http-method get">GET</span> | `/v4.3.0/{resource}/{id}/` | Retrieve a resource by ID |
 | **List (Search)** | <span class="http-method get">GET</span> | `/v4.3.0/{resource}/` | Search resources with pagination |
-| **Update (complete)** | <span class="http-method put">PUT</span> | `/v4.3.0/{resource}/{id}/` | Replace completely |
-| **Update (partial)** | <span class="http-method patch">PATCH</span> | `/v4.3.0/{resource}/{id}/` | Modify specific fields |
-| **Delete** | <span class="http-method delete">DELETE</span> | `/v4.3.0/{resource}/{id}/` | Delete permanently |
 
 ## List / Search
 
@@ -136,14 +132,25 @@ The response is a FHIR Bundle of type `searchset`:
 
 ```bash
 # List patients with 5 per page
-curl -u username:password "{API_URL}/v4.3.0/patient/?_count=5"
+curl -H "Authorization: Api-Key {API_KEY}" "{API_URL}/v4.3.0/patient/?_count=5"
 
 # Get page 2
-curl -u username:password "{API_URL}/v4.3.0/patient/?_count=5&page=2"
+curl -H "Authorization: Api-Key {API_KEY}" "{API_URL}/v4.3.0/patient/?_count=5&page=2"
 ```
 
-!!! info "Current Limitations"
-    Advanced search parameters (e.g., `?name=John`, `?birthdate=1990`) are not yet implemented. Only basic listing with pagination is supported.
+## FHIR Date Prefixes
+
+Date filters (`date`, `birthdate`, `death-date`, `_lastUpdated`) support FHIR comparison prefixes:
+
+| Prefix | Operator | Example |
+|--------|----------|---------|
+| `ge` | ≥ (greater than or equal) | `?date=ge2024-01-01` |
+| `le` | ≤ (less than or equal) | `?date=le2024-12-31` |
+| `gt` | > (strictly greater than) | `?date=gt2024-01-01` |
+| `lt` | < (strictly less than) | `?date=lt2024-12-31` |
+| `ne` | ≠ (not equal) | `?date=ne2024-06-15` |
+
+Prefixes can be combined: `?date=ge2024-01-01&date=le2024-12-31` retrieves all records from 2024.
 
 ## Request Format
 
@@ -160,23 +167,29 @@ Content-Type: application/fhir+json
 Accept: application/fhir+json
 ```
 
-### Authentication (if enabled)
+### Authentication
 
 ```http
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Authorization: Api-Key {API_KEY}
 ```
+
+API keys start with `fhir_`. Pass this header with every request.
+
+#### Key Permissions
+
+Each API key is created with permissions scoped to specific FHIR resources. A key may grant access to one resource (e.g., `Patient` only), a subset, or all resources (`*`).
+
+Contact your administrator to obtain a key or to adjust which resources it can access.
 
 ## HTTP Status Codes
 
 | Code | Meaning | Example |
 |------|---------|---------|
-| **200** | OK - Request successful | Successful GET, PATCH |
-| **201** | Created - Resource created | Successful POST |
-| **204** | No Content - Deletion successful | Successful DELETE |
-| **400** | Bad Request - Invalid data | Malformed JSON, missing required field |
+| **200** | OK - Request successful | Successful GET |
+| **401** | Unauthorized - Authentication required | Missing or invalid credentials |
+| **403** | Forbidden - Insufficient permissions | Valid credentials but no read access |
 | **404** | Not Found - Resource not found | Non-existent ID |
-| **405** | Method Not Allowed - Operation not supported | Unsupported method on endpoint |
-| **409** | Conflict - Constraint violated | Duplicate identifier |
+| **429** | Too Many Requests - Rate limit reached | Rate limit exceeded (limits not yet finalized) |
 | **500** | Internal Server Error | Application bug |
 
 
@@ -199,10 +212,10 @@ All FHIR requests are automatically logged via the `FHIRAccessLogMiddleware` mid
 **Recorded data:**
 - User (ID or "anonymous")
 - IP address
-- HTTP method (GET, POST, PUT, PATCH, DELETE)
+- HTTP method
 - Full URL
 - Headers (Content-Type, Accept, User-Agent)
-- HTTP status (200, 201, 400, 404, etc.)
+- HTTP status
 - Timestamps (start, end)
 - Processing duration
 

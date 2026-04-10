@@ -36,14 +36,11 @@ A **resource** is a business entity (Patient, Organization, Encounter, etc.). Ea
 
 ### Endpoints
 
-The API exposes RESTful endpoints for each resource:
+The API exposes RESTful read endpoints for each resource:
 
 ```
+GET    /v4.3.0/patient/        # List
 GET    /v4.3.0/patient/123/    # Read
-POST   /v4.3.0/patient/        # Create
-PUT    /v4.3.0/patient/123/    # Update (complete)
-PATCH  /v4.3.0/patient/123/    # Update (partial)
-DELETE /v4.3.0/patient/123/    # Delete
 ```
 
 ### Versioning

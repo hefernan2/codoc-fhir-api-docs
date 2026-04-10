@@ -9,7 +9,7 @@ The **Encounter** resource represents hospital stays and intra-hospital movement
 ## Endpoints
 
 <div class="api-endpoint">
-  <span class="http-method post">POST</span>
+  <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/encounter/</span>
 </div>
 <div class="api-endpoint">
@@ -19,14 +19,6 @@ The **Encounter** resource represents hospital stays and intra-hospital movement
 <div class="api-endpoint">
   <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/encounter/movement/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method patch">PATCH</span>
-  <span class="endpoint-path">/v4.3.0/encounter/stay/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method delete">DELETE</span>
-  <span class="endpoint-path">/v4.3.0/encounter/stay/{id}/</span>
 </div>
 
 ## Key Concepts
@@ -55,82 +47,76 @@ An intra-hospital transfer with `partOf` pointing to a Stay.
 | `partOf` | Reference | No | Parent Stay (for Movement only) |
 | `location[]` | BackboneElement | No | Location(s) |
 
-## Create a Stay
+## Search Parameters
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `patient` | integer | Filter by patient ID | `?patient=123` |
+| `date` | date | Admission date (FHIR prefixes: `ge`, `le`, `gt`, `lt`, `ne`) | `?date=ge2024-01-01&date=le2024-12-31` |
+| `_lastUpdated` | date | Last update date (FHIR prefixes supported) | `?_lastUpdated=ge2024-01-01` |
+
+## List Encounters
 
 === "curl"
     ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/encounter/ \
-      -H "Content-Type: application/json" \
-      -d '{
-        "resourceType": "Encounter",
-        "identifier": [{"use": "usual", "value": "ADM001"}],
-        "status": "in-progress",
-        "class": {"code": "IMP"},
-        "subject": {"reference": "Patient/1"},
-        "serviceProvider": {"reference": "Organization/department-1"},
-        "period": {"start": "2024-01-15T08:00:00Z"},
-        "hospitalization": {
-          "admitSource": {"coding": [{"code": "H"}]},
-          "dischargeDisposition": {"coding": [{"code": "01"}]}
-        }
-      }'
+    curl -H "Authorization: Api-Key {API_KEY}" "{API_URL}/v4.3.0/encounter/?_count=20"
     ```
 
 === "Python"
     ```python
-    stay = {
-        "resourceType": "Encounter",
-        "identifier": [{"use": "usual", "value": "ADM001"}],
-        "status": "in-progress",
-        "class": {"code": "IMP"},
-        "subject": {"reference": "Patient/1"},
-        "serviceProvider": {"reference": "Organization/department-1"},
-        "period": {"start": "2024-01-15T08:00:00Z"},
-        "hospitalization": {
-          "admitSource": {"coding": [{"code": "H"}]},
-          "dischargeDisposition": {"coding": [{"code": "01"}]}
-    }
-    }
+    import requests
     
-    response = requests.post("{API_URL}/v4.3.0/encounter/", json=stay)
-    stay_id = response.json()["id"]
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get(
+        "{API_URL}/v4.3.0/encounter/",
+        params={"_count": 20},
+        headers=headers
+    )
+    
+    bundle = response.json()
+    print(f"Total: {bundle['total']} encounters")
+    for entry in bundle.get("entry", []):
+        enc = entry["resource"]
+        print(f"  ID {enc['id']}: {enc['status']} - {enc['class']['code']}")
     ```
 
-## Create a Movement
+## Retrieve a Stay
 
 === "curl"
     ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/encounter/ \
-      -H "Content-Type: application/json" \
-      -d '{
-            "resourceType": "Encounter",
-            "identifier": [{"use": "usual", "value": "MOV001"}],
-            "status": "in-progress",
-            "class": {"code": "IMP"},
-            "subject": {"reference": "Patient/1"},
-            "serviceProvider": {"reference": "Organization/unit-1"},
-            "period": {"start": "2025-01-20T10:00:00Z"},
-            "partOf": {"reference": "Encounter/1"},
-            "hospitalization": {
-            "admitSource": {"coding": [{"code": "H"}]},
-            "dischargeDisposition": {"coding": [{"code": "01"}]}
-          }
-    }'
+    # Direct Stay access
+    curl -H "Authorization: Api-Key {API_KEY}" {API_URL}/v4.3.0/encounter/stay/789/
+    
+    # Automatic search (searches Stay then Movement)
+    curl -H "Authorization: Api-Key {API_KEY}" {API_URL}/v4.3.0/encounter/789/
     ```
 
-## Close a Stay
-
-=== "curl"
-    ```bash
-    curl -u username:password -X PATCH {API_URL}/v4.3.0/encounter/stay/1/ \
-      -H "Content-Type: application/json" \
-      -d '{
-        "resourceType": "Encounter",
-        "status": "finished",
-        "subject": {"reference": "Patient/1"},
-        "period": {"start": "2024-01-15T10:00:00Z", "end": "2024-01-20T16:00:00Z"}
-      }'
+=== "Python"
+    ```python
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get("{API_URL}/v4.3.0/encounter/stay/789/", headers=headers)
+    stay = response.json()
+    
+    print(f"Status: {stay['status']}")
+    print(f"Start: {stay['period']['start']}")
+    if 'end' in stay.get('period', {}):
+        print(f"End: {stay['period']['end']}")
     ```
+
+## Accepted ID Formats
+
+The API accepts multiple formats to retrieve an encounter:
+
+```bash
+# Direct Stay access
+GET /v4.3.0/encounter/stay/789/
+
+# Direct Movement access
+GET /v4.3.0/encounter/movement/456/
+
+# Automatic search (searches Stay then Movement)
+GET /v4.3.0/encounter/789/
+```
 
 ## Status Codes
 
@@ -150,128 +136,6 @@ An intra-hospital transfer with `partOf` pointing to a Stay.
 | `EMER` | Emergency | Emergency |
 | `HH` | Home Health | Home hospitalization |
 
-## Accepted ID Formats
-
-The API accepts multiple formats to retrieve an encounter:
-
-```bash
-# Direct Stay access
-GET /v4.3.0/encounter/stay/789/
-
-# Direct Movement access
-GET /v4.3.0/encounter/movement/456/
-
-# Automatic search (searches Stay then Movement)
-GET /v4.3.0/encounter/789/
-```
-
-## Common Errors
-
-### Error 400 - Non-existent Patient
-
-```json
-{
-  "issue": [{
-    "severity": "error",
-    "diagnostics": "Patient with ID 999 does not exist"
-  }]
-}
-```
-
-### Error 400 - Parent Stay Not Found
-
-```json
-{
-  "issue": [{
-    "severity": "error",
-    "diagnostics": "Stay with ID 999 does not exist"
-  }]
-}
-```
-
-**Solution:** To create a Movement, ensure the parent Stay exists.
-
-## Complete Use Case
-
-### Typical Patient Journey
-
-```python
-# Patient Journey: Hospital → Department → Unit
-
-# Prerequisites: Create the organization hierarchy
-site = requests.post("{API_URL}/v4.3.0/organization/", json={
-    "resourceType": "Organization",
-    "identifier": [{"use": "usual", "value": "HOSP001"}],
-    "name": "Paris University Hospital",
-    "type": [{"coding": [{"code": "prov"}]}]
-}).json()
-site_id = site["id"]
-
-department = requests.post("{API_URL}/v4.3.0/organization/", json={
-    "resourceType": "Organization",
-    "identifier": [{"use": "usual", "value": "CARD001"}],
-    "name": "Cardiology Department",
-    "type": [{"coding": [{"code": "dept"}]}],
-    "partOf": {"reference": f"organization/{site_id}"}
-}).json()
-dept_id = department["id"]
-
-unit = requests.post("{API_URL}/v4.3.0/organization/", json={
-    "resourceType": "Organization",
-    "identifier": [{"use": "usual", "value": "ICU001"}],
-    "name": "Intensive Care Unit",
-    "type": [{"coding": [{"code": "team"}]}],
-    "partOf": {"reference": f"organization/{dept_id}"}
-}).json()
-unit_id = unit["id"]
-
-# 1. Emergency admission
-stay = requests.post("{API_URL}/v4.3.0/encounter/", json={
-    "resourceType": "Encounter",
-    "identifier": [{"use": "usual", "value": "ADM001"}],
-    "status": "in-progress",
-    "class": {"code": "EMER"},
-    "subject": {"reference": "Patient/123"},
-    "serviceProvider": {"reference": f"Organization/{site_id}"},
-    "period": {"start": "2024-01-15T08:00:00Z"}
-}).json()
-stay_id = stay["id"]
-
-# 2. Transfer to Cardiology Department
-movement1 = requests.post("{API_URL}/v4.3.0/encounter/", json={
-    "resourceType": "Encounter",
-    "identifier": [{"use": "usual", "value": "MOV001"}],
-    "status": "in-progress",
-    "class": {"code": "IMP"},
-    "subject": {"reference": "Patient/123"},
-    "serviceProvider": {"reference": f"Organization/{dept_id}"},
-    "partOf": {"reference": f"Encounter/{stay_id}"},
-    "period": {"start": "2024-01-15T14:00:00Z"}
-}).json()
-
-# 3. Transfer to ICU (Intensive Care Unit)
-movement2 = requests.post("{API_URL}/v4.3.0/encounter/", json={
-    "resourceType": "Encounter",
-    "identifier": [{"use": "usual", "value": "MOV002"}],
-    "status": "in-progress",
-    "class": {"code": "IMP"},
-    "subject": {"reference": "Patient/123"},
-    "serviceProvider": {"reference": f"Organization/{unit_id}"},
-    "partOf": {"reference": f"Encounter/{stay_id}"},
-    "period": {"start": "2024-01-17T02:00:00Z"}
-}).json()
-
-# 4. Discharge
-requests.patch("{API_URL}/v4.3.0/encounter/stay/{stay_id}/", json={
-    "resourceType": "Encounter",
-    "status": "finished",
-    "period": {
-        "start": "2024-01-15T08:00:00Z",
-        "end": "2024-01-20T10:00:00Z"
-    }
-})
-```
-
 ## Related Resources
 
 - [Patient](patient.md) - Via `subject`
@@ -280,5 +144,5 @@ requests.patch("{API_URL}/v4.3.0/encounter/stay/{stay_id}/", json={
 
 <div class="quick-links">
   <a href="../documentreference/">📄 DocumentReference</a>
-  <a href="../../guides/patient-journey/">📖 Guide: Patient Journey</a>
+  <a href="../../guides/patient-journey/">📖 Guide: Trace Patient Journey</a>
 </div>

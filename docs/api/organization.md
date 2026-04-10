@@ -6,22 +6,14 @@ title: Organization
 
 The **Organization** resource represents the hospital's organizational hierarchy.
 
-## Endpoint
+## Endpoints
 
 <div class="api-endpoint">
-  <span class="http-method post">POST</span>
+  <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/organization/</span>
 </div>
 <div class="api-endpoint">
   <span class="http-method get">GET</span>
-  <span class="endpoint-path">/v4.3.0/organization/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method put">PUT</span>
-  <span class="endpoint-path">/v4.3.0/organization/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method delete">DELETE</span>
   <span class="endpoint-path">/v4.3.0/organization/{id}/</span>
 </div>
 
@@ -54,37 +46,56 @@ Site → Department → Unit
 | `extension[period]` | Extension | No | `start_date`, `end_date` | Activity period |
 | `extension[*_count]` | Extension | No | Counters | Aggregated statistics |
 
-## Create a Site (Hospital)
+## Search Parameters
+
+No filter parameters are available for this resource. The list endpoint returns all organizations.
+
+## List Organizations
 
 === "curl"
     ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/organization/ \
-      -H 'Content-Type: application/json' \
-      -d '{
-            "resourceType": "Organization",
-            "identifier": [{"use": "usual", "value":  "HOSP001"}],
-            "name": "Paris University Hospital",
-            "type": [{"coding": [{"code": "prov"}]}]
-    }'
+    curl -H "Authorization: Api-Key {API_KEY}" "{API_URL}/v4.3.0/organization/?_count=20"
     ```
 
 === "Python"
     ```python
     import requests
     
-    site = {
-        "resourceType": "Organization",
-        "identifier": [{"use": "usual", "value":  "HOSP001"}],
-        "name": "Paris University Hospital",
-        "type": [{"coding": [{"code": "prov"}]}]
-    }
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get(
+        "{API_URL}/v4.3.0/organization/",
+        params={"_count": 20},
+        headers=headers
+    )
     
-    response = requests.post("{API_URL}/v4.3.0/organization/", json=site)
-    site_id = response.json()["id"]
-    print(f"Site created with ID: {site_id}")
+    bundle = response.json()
+    print(f"Total: {bundle['total']} organizations")
+    for entry in bundle.get("entry", []):
+        org = entry["resource"]
+        org_type = org["type"][0]["coding"][0]["code"]
+        print(f"  [{org_type}] {org['name']} (ID {org['id']})")
     ```
 
-**Response (201 Created):**
+## Retrieve an Organization
+
+=== "curl"
+    ```bash
+    curl -H "Authorization: Api-Key {API_KEY}" {API_URL}/v4.3.0/organization/site-1/
+    ```
+
+=== "Python"
+    ```python
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get("{API_URL}/v4.3.0/organization/site-1/", headers=headers)
+    org = response.json()
+    
+    print(f"Type: {org['type'][0]['coding'][0]['code']}")
+    print(f"Name: {org['name']}")
+    if 'partOf' in org:
+        print(f"Parent: {org['partOf']['reference']}")
+    ```
+
+**Response (200 OK):**
 ```json
 {
   "resourceType":"Organization",
@@ -117,171 +128,46 @@ Site → Department → Unit
 }
 ```
 
-## Create a Department
+## Navigate the Hierarchy
 
-=== "curl"
-    ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/organization/ \
-      -H 'Content-Type: application/json' \
-      -d '{
-            "resourceType": "Organization",
-            "identifier": [{"use": "usual", "value": "CARD001"}],
-            "name": "Cardiology Department",
-            "type": [{"coding": [{"code": "dept"}]}],
-            "partOf": {"reference": "organization/site-1"}
-      }'
-    ```
+To navigate up the hierarchy, follow the `partOf` reference:
 
 === "Python"
     ```python
-    department = {
-        "resourceType": "Organization",
-        "identifier": [{"use": "usual", "value": "CARD001"}],
-        "name": "Cardiology Department",
-        "type": [{"coding": [{"code": "dept"}]}],
-        "partOf": {"reference": "organization/site-1"}
-    }
+    headers = {"Authorization": "Api-Key {API_KEY}"}
     
-    response = requests.post("{API_URL}/v4.3.0/organization/", json=department)
-    dept_id = response.json()["id"]
-    print(f"Dept created with ID: {dept_id}")
-
-    ```
-
-## Create a Care Unit
-
-=== "curl"
-    ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/organization/ \
-      -H 'Content-Type: application/json' \
-      -d '{
-        "resourceType": "Organization",
-        "identifier": [{"use": "usual", "value": "ICU001"}],
-        "name": "Intensive Care Unit",
-        "type": [{"coding": [{"code": "team"}]}],
-        "partOf": {"reference": "organization/department-1"}
-      }'
-    ```
-=== "Python"
-    ```python
-    unit = {
-        "resourceType": "Organization",
-        "identifier": [{"use": "usual", "value": "ICU001"}],
-        "name": "Intensive Care Unit",
-        "type": [{"coding": [{"code": "team"}]}],
-        "partOf": {"reference": "organization/department-1"}
-    }
+    def get_parent_chain(org_id):
+        """Retrieve complete parent chain."""
+        chain = []
+        current_id = org_id
+        
+        while current_id:
+            org = requests.get(f"{API_URL}/v4.3.0/organization/{current_id}/", headers=headers).json()
+            chain.append({
+                "id": org["id"],
+                "name": org["name"],
+                "type": org["type"][0]["coding"][0]["code"]
+            })
+            
+            if "partOf" in org:
+                current_id = org["partOf"]["reference"].split("/")[-1]
+            else:
+                break
+        
+        return chain
     
-    response = requests.post("{API_URL}/v4.3.0/organization/", json=department)
-    unit_id = response.json()["id"]
-    print(f"Unit created with ID: {unit_id}")
-
-    ```
-!!! info "Hierarchy Validation"
-    The API automatically validates that:
-    
-    - A **department** has an **instance** or **site** parent
-    - A **unit** has a **department** parent
-    - A **site** can be root or have an **instance** parent
-
-## With Activity Period
-
-```json
-{
-    "resourceType": "Organization",
-    "identifier": [{"use": "usual", "value": "ICU001"}],
-    "name": "Intensive Care Unit",
-    "type": [{"coding": [{"code": "team"}]}],
-    "partOf": {"reference": "organization/department-1"},
-    "extension": [
-      {
-        "url": "unit_period",
-        "valuePeriod": {
-          "start": "2025-01-01T00:00:00Z",
-          "end": "2025-12-31T23:59:59Z"
-        }
-      }
-    ]
-  }
-```
-
-## Retrieve an Organization
-
-=== "curl"
-    ```bash
-    curl -u username:password {API_URL}/v4.3.0/organization/site-1/
+    # Example: find parents of a unit
+    chain = get_parent_chain("unit-5")
+    for i, org in enumerate(chain):
+        print("  " * i + f"→ {org['name']} ({org['type']})")
     ```
 
-=== "Python"
-    ```python
-    response = requests.get("{API_URL}/v4.3.0/organization/site-1/")
-    org = response.json()
-    
-    print(f"Type: {org['type'][0]['coding'][0]['code']}")
-    print(f"Name: {org['name']}")
-    if 'partOf' in org:
-        print(f"Parent: {org['partOf']['reference']}")
-    ```
-
-## Common Errors
-
-### Error 400 - Invalid Type
-
-```json
-{
-  "resourceType": "OperationOutcome",
-  "issue": [{
-    "severity": "error",
-    "code": "invalid",
-    "diagnostics": "Invalid organization type. Must be: instance, site, department, unit"
-  }]
-}
+**Example output:**
 ```
-
-### Error 400 - Parent Required
-
-```json
-{
-  "resourceType": "OperationOutcome",
-  "issue": [{
-    "severity": "error",
-    "code": "required",
-    "diagnostics": "Organization partOf is required for department"
-  }]
-}
+→ Cardiology - Unit A (unit)
+  → Cardiology Department (department)
+    → CHU Paris - Saint-Antoine Site (site)
 ```
-
-**Solution:** Departments and units must have a `partOf`.
-
-### Error 400 - Non-existent Parent
-
-```json
-{
-  "resourceType": "OperationOutcome",
-  "issue": [{
-    "severity": "error",
-    "code": "not-found",
-    "diagnostics": "Site with ID 999 does not exist"
-  }]
-}
-```
-
-**Solution:** Verify that the ID in `partOf.reference` exists.
-
-### Error 400 - Invalid Hierarchy
-
-```json
-{
-  "resourceType": "OperationOutcome",
-  "issue": [{
-    "severity": "error",
-    "code": "invalid",
-    "diagnostics": "Unit parent must be a Department, got Site"
-  }]
-}
-```
-
-**Solution:** Respect hierarchies: Unit → Department → Site/Instance.
 
 ## Related Resources
 
@@ -293,5 +179,5 @@ Site → Department → Unit
 
 <div class="quick-links">
   <a href="../encounter/">🛏️ Encounter</a>
-  <a href="../../guides/organization-hierarchy/">📖 Guide: Navigate the Hierarchy</a>
+  <a href="../../guides/organization-hierarchy/">📖 Guide: Explore the Hierarchy</a>
 </div>

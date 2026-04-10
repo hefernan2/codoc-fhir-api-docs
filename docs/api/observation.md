@@ -6,22 +6,14 @@ title: Observation
 
 The **Observation** resource represents biological and laboratory test results.
 
-## Endpoint
+## Endpoints
 
 <div class="api-endpoint">
-  <span class="http-method post">POST</span>
+  <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/observation/</span>
 </div>
 <div class="api-endpoint">
   <span class="http-method get">GET</span>
-  <span class="endpoint-path">/v4.3.0/observation/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method put">PUT</span>
-  <span class="endpoint-path">/v4.3.0/observation/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method delete">DELETE</span>
   <span class="endpoint-path">/v4.3.0/observation/{id}/</span>
 </div>
 
@@ -42,44 +34,60 @@ This resource automatically filters on `thesaurus_code = "Biologie"` (code confi
 | `valueString` | string | No | Text value |
 | `valueCodeableConcept` | CodeableConcept | No | Coded value |
 
-## Create an Observation
+## Search Parameters
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `patient` | integer | Filter by patient ID | `?patient=123` |
+| `encounter` | integer | Filter by stay ID | `?encounter=789` |
+| `date` | date | Observation date (FHIR prefixes: `ge`, `le`, `gt`, `lt`, `ne`) | `?date=ge2024-01-01` |
+| `_lastUpdated` | date | Last update date (FHIR prefixes supported) | `?_lastUpdated=ge2024-01-01` |
+
+## List Observations
 
 === "curl"
     ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/observation/ \
-      -H "Content-Type: application/json" \
-      -d '{
-            "resourceType": "Observation",
-            "status": "final",
-            "code": {
-              "coding": [{"code": "GLU"}]
-            },
-            "subject": {"reference": "Patient/1"},
-            "effectiveDateTime": "2024-01-21T07:00:00Z",
-            "valueQuantity": {
-              "value": 95,
-              "unit": "mg/dL"
-            }
-          }'
+    curl -H "Authorization: Api-Key {API_KEY}" "{API_URL}/v4.3.0/observation/?_count=20"
     ```
 
 === "Python"
     ```python
-    observation = {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [{"code": "GLU"}]
-        },
-        "subject": {"reference": "Patient/1"},
-        "effectiveDateTime": "2024-01-21T07:00:00Z",
-        "valueQuantity": {
-          "value": 95,
-          "unit": "mg/dL"
-        }
-    }
+    import requests
     
-    response = requests.post("{API_URL}/v4.3.0/observation/", json=observation)
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get(
+        "{API_URL}/v4.3.0/observation/",
+        params={"_count": 20},
+        headers=headers
+    )
+    
+    bundle = response.json()
+    print(f"Total: {bundle['total']} observations")
+    for entry in bundle.get("entry", []):
+        obs = entry["resource"]
+        code = obs["code"]["coding"][0].get("display", obs["code"]["coding"][0]["code"])
+        value = obs.get("valueQuantity", {})
+        print(f"  {code}: {value.get('value', 'N/A')} {value.get('unit', '')}")
+    ```
+
+## Retrieve an Observation
+
+=== "curl"
+    ```bash
+    curl -H "Authorization: Api-Key {API_KEY}" {API_URL}/v4.3.0/observation/456/
+    ```
+
+=== "Python"
+    ```python
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get("{API_URL}/v4.3.0/observation/456/", headers=headers)
+    obs = response.json()
+    
+    print(f"Code: {obs['code']['coding'][0]['display']}")
+    print(f"Status: {obs['status']}")
+    print(f"Date: {obs['effectiveDateTime']}")
+    if 'valueQuantity' in obs:
+        print(f"Value: {obs['valueQuantity']['value']} {obs['valueQuantity']['unit']}")
     ```
 
 ## Status Codes
@@ -127,31 +135,6 @@ This resource automatically filters on `thesaurus_code = "Biologie"` (code confi
     }]
   }
 }
-```
-
-## Use Cases
-
-### Complete Blood Test
-
-```python
-# Hemoglobin
-obs1 = create_observation("HEMOGLOBIN", 14.5, "g/dL")
-
-# Leukocytes
-obs2 = create_observation("LEUKOCYTES", 7800, "/mm3")
-
-# Blood glucose
-obs3 = create_observation("GLUCOSE", 0.95, "g/L")
-
-def create_observation(code, value, unit):
-    return requests.post("/v4.3.0/observation/", json={
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {"coding": [{"code": code}]},
-        "subject": {"reference": "Patient/123"},
-        "effectiveDateTime": "2024-01-15T08:30:00Z",
-        "valueQuantity": {"value": value, "unit": unit}
-    }).json()
 ```
 
 ## Related Resources

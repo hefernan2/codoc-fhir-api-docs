@@ -6,22 +6,14 @@ title: MedicationRequest
 
 The **MedicationRequest** resource represents medication prescriptions.
 
-## Endpoint
+## Endpoints
 
 <div class="api-endpoint">
-  <span class="http-method post">POST</span>
+  <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/medicationrequest/</span>
 </div>
 <div class="api-endpoint">
   <span class="http-method get">GET</span>
-  <span class="endpoint-path">/v4.3.0/medicationrequest/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method put">PUT</span>
-  <span class="endpoint-path">/v4.3.0/medicationrequest/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method delete">DELETE</span>
   <span class="endpoint-path">/v4.3.0/medicationrequest/{id}/</span>
 </div>
 
@@ -45,100 +37,58 @@ Filters on `thesaurus_code = "Prescription"` (configurable via `THESAURUS_CODE_M
 | `dispenseRequest.validityPeriod` | Period | ❌ No | Dispensing validity dates |
 | `performer` | Reference | ❌ No | Department (Organization/department-{id}) |
 
-## Create a Prescription
+## Search Parameters
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `patient` | integer | Filter by patient ID | `?patient=123` |
+| `encounter` | integer | Filter by stay ID | `?encounter=789` |
+| `date` | date | Prescription date (FHIR prefixes: `ge`, `le`, `gt`, `lt`, `ne`) | `?date=ge2024-01-01` |
+| `_lastUpdated` | date | Last update date (FHIR prefixes supported) | `?_lastUpdated=ge2024-01-01` |
+
+## List Prescriptions
 
 === "curl"
     ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/medicationrequest/ \
-      -H "Content-Type: application/json" \
-      -d '{
-            "resourceType": "MedicationRequest",
-            "status": "active",
-            "intent": "order",
-            "medicationCodeableConcept": {
-              "coding": [{
-                "code": "AMOX500",
-                "display": "Amoxicillin 500mg"
-              }]
-            },
-            "subject": {"reference": "Patient/1"},
-            "encounter": {"reference": "Encounter/2"},
-            "authoredOn": "2024-01-15T09:00:00Z",
-            "dosageInstruction": [
-              {
-                "doseAndRate": [{
-                  "doseQuantity": {
-                    "value": 500,
-                    "unit": "mg"
-                  }
-                }],
-                "timing": {
-                  "repeat": {
-                    "frequency": 3,
-                    "period": 1,
-                    "periodUnit": "d"
-                  }
-                },
-                "route": {
-                  "text": "Oral"
-                }
-              }
-            ],
-            "dispenseRequest": {
-              "validityPeriod": {
-                "start": "2024-01-15T00:00:00Z",
-                "end": "2024-01-22T00:00:00Z"
-              }
-            },
-            "performer": {"reference": "Organization/department-2"}
-      }'
+    curl -H "Authorization: Api-Key {API_KEY}" "{API_URL}/v4.3.0/medicationrequest/?_count=20"
     ```
 
 === "Python"
     ```python
-    prescription = {
-          "resourceType": "MedicationRequest",
-          "status": "active",
-          "intent": "order",
-          "medicationCodeableConcept": {
-            "coding": [{
-              "code": "AMOX500",
-              "display": "Amoxicillin 500mg"
-            }]
-          },
-          "subject": {"reference": "Patient/1"},
-          "encounter": {"reference": "Encounter/2"},
-          "authoredOn": "2024-01-15T09:00:00Z",
-          "dosageInstruction": [
-            {
-              "doseAndRate": [{
-                "doseQuantity": {
-                  "value": 500,
-                  "unit": "mg"
-                }
-              }],
-              "timing": {
-                "repeat": {
-                  "frequency": 3,
-                  "period": 1,
-                  "periodUnit": "d"
-                }
-              },
-              "route": {
-                "text": "Oral"
-              }
-            }
-          ],
-          "dispenseRequest": {
-            "validityPeriod": {
-              "start": "2024-01-15T00:00:00Z",
-              "end": "2024-01-22T00:00:00Z"
-            }
-          },
-          "performer": {"reference": "Organization/department-2"}
-    }
+    import requests
     
-    response = requests.post("{API_URL}/v4.3.0/medicationrequest/", json=prescription)
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get(
+        "{API_URL}/v4.3.0/medicationrequest/",
+        params={"_count": 20},
+        headers=headers
+    )
+    
+    bundle = response.json()
+    print(f"Total: {bundle['total']} prescriptions")
+    for entry in bundle.get("entry", []):
+        rx = entry["resource"]
+        med = rx["medicationCodeableConcept"]["coding"][0].get("display", "N/A")
+        print(f"  ID {rx['id']}: {med} - {rx['authoredOn']}")
+    ```
+
+## Retrieve a Prescription
+
+=== "curl"
+    ```bash
+    curl -H "Authorization: Api-Key {API_KEY}" {API_URL}/v4.3.0/medicationrequest/1/
+    ```
+
+=== "Python"
+    ```python
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get("{API_URL}/v4.3.0/medicationrequest/1/", headers=headers)
+    rx = response.json()
+    
+    med = rx["medicationCodeableConcept"]["coding"][0]
+    print(f"Medication: {med.get('display', med['code'])}")
+    print(f"Prescribed on: {rx['authoredOn']}")
+    print(f"Patient: {rx['subject']['reference']}")
     ```
 
 ## Related Resources

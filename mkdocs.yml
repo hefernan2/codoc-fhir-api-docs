@@ -176,15 +176,14 @@ nav:
     - MedicationRequest: api/medicationrequest.md
     - DiagnosticReport: api/diagnosticreport.md
     - CodeSystem: api/codesystem.md
-    - Bundle (Bulk Create): api/bundle.md
-  
+
   - Guides:
     - guides/index.md
-    - Create a patient record: guides/patient-record.md
-    - Manage hospital hierarchy: guides/organization-hierarchy.md
+    - Query a patient record: guides/patient-record.md
+    - Explore hospital hierarchy: guides/organization-hierarchy.md
     - Semantic enrichment: guides/semantic-enrichment.md
-    - Custom thesaurus: guides/custom-thesaurus.md
-    - Patient journey: guides/patient-journey.md
+    - Query medical vocabularies: guides/custom-thesaurus.md
+    - Trace patient journey: guides/patient-journey.md
   
   - Implementation Guide:
     - implementation-guide/index.md

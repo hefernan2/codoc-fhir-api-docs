@@ -6,22 +6,14 @@ title: DiagnosticReport
 
 The **DiagnosticReport** resource represents diagnostic examination reports.
 
-## Endpoint
+## Endpoints
 
 <div class="api-endpoint">
-  <span class="http-method post">POST</span>
+  <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/diagnosticreport/</span>
 </div>
 <div class="api-endpoint">
   <span class="http-method get">GET</span>
-  <span class="endpoint-path">/v4.3.0/diagnosticreport/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method put">PUT</span>
-  <span class="endpoint-path">/v4.3.0/diagnosticreport/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method delete">DELETE</span>
   <span class="endpoint-path">/v4.3.0/diagnosticreport/{id}/</span>
 </div>
 
@@ -42,54 +34,58 @@ Filters on `thesaurus_code = "Diagnostic"` (configurable via `THESAURUS_CODE_DIA
 | `conclusion` | string | ❌ No | Diagnostic findings/conclusion text |
 | `performer` | Reference[] | ❌ No | Department (Organization/department-{id}) |
 
-## Create a Diagnostic Report
+## Search Parameters
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `patient` | integer | Filter by patient ID | `?patient=123` |
+| `encounter` | integer | Filter by stay ID | `?encounter=789` |
+| `date` | date | Examination date (FHIR prefixes: `ge`, `le`, `gt`, `lt`, `ne`) | `?date=ge2024-01-01` |
+| `_lastUpdated` | date | Last update date (FHIR prefixes supported) | `?_lastUpdated=ge2024-01-01` |
+
+## List Diagnostic Reports
 
 === "curl"
     ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/diagnosticreport/ \
-      -H "Content-Type: application/json" \
-      -d '{
-            "resourceType": "DiagnosticReport",
-            "status": "final",
-            "code": {
-              "coding": [{
-                "code": "MRI-BRAIN",
-                "display": "Brain MRI"
-              }]
-            },
-            "subject": {"reference": "Patient/1"},
-            "encounter": {"reference": "Encounter/2"},
-            "effectiveDateTime": "2024-01-19T10:00:00Z",
-            "issued": "2024-01-19T15:30:00Z",
-            "conclusion": "No acute intracranial abnormality. Normal brain structure.",
-            "performer": [
-              {"reference": "Organization/department-2"}
-            ]
-      }'
+    curl -H "Authorization: Api-Key {API_KEY}" "{API_URL}/v4.3.0/diagnosticreport/?_count=20"
     ```
 
 === "Python"
     ```python
-    report = {
-            "resourceType": "DiagnosticReport",
-            "status": "final",
-            "code": {
-              "coding": [{
-                "code": "MRI-BRAIN",
-                "display": "Brain MRI"
-              }]
-            },
-            "subject": {"reference": "Patient/1"},
-            "encounter": {"reference": "Encounter/2"},
-            "effectiveDateTime": "2024-01-19T10:00:00Z",
-            "issued": "2024-01-19T15:30:00Z",
-            "conclusion": "No acute intracranial abnormality. Normal brain structure.",
-            "performer": [
-              {"reference": "Organization/department-2"}
-            ]
-    }
+    import requests
     
-    response = requests.post("{API_URL}/v4.3.0/diagnosticreport/", json=report)
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get(
+        "{API_URL}/v4.3.0/diagnosticreport/",
+        params={"_count": 20},
+        headers=headers
+    )
+    
+    bundle = response.json()
+    print(f"Total: {bundle['total']} reports")
+    for entry in bundle.get("entry", []):
+        report = entry["resource"]
+        code = report["code"]["coding"][0].get("display", report["code"]["coding"][0]["code"])
+        print(f"  ID {report['id']}: {code} - {report['effectiveDateTime']}")
+    ```
+
+## Retrieve a Diagnostic Report
+
+=== "curl"
+    ```bash
+    curl -H "Authorization: Api-Key {API_KEY}" {API_URL}/v4.3.0/diagnosticreport/1/
+    ```
+
+=== "Python"
+    ```python
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get("{API_URL}/v4.3.0/diagnosticreport/1/", headers=headers)
+    report = response.json()
+    
+    print(f"Examination: {report['code']['coding'][0].get('display', 'N/A')}")
+    print(f"Date: {report['effectiveDateTime']}")
+    if 'conclusion' in report:
+        print(f"Conclusion: {report['conclusion']}")
     ```
 
 ## Related Resources

@@ -1,10 +1,10 @@
 ---
-title: Navigate Hospital Hierarchy
+title: Explore Hospital Hierarchy
 ---
 
-# Navigate Hospital Hierarchy
+# Explore Hospital Hierarchy
 
-This guide explains how to create and organize your hospital's organizational structure.
+This guide explains how to navigate and visualize your hospital's organizational structure.
 
 ## Supported Structure
 
@@ -14,18 +14,11 @@ Site (Hospital)
     └── Unit (Care unit)
 ```
 
-## Step 1: Create a Site (Hospital)
+## Step 1: List All Organizations
 
 === "curl"
     ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/organization/ \
-      -H "Content-Type: application/json" \
-      -d '{
-        "resourceType": "Organization",
-        "identifier": [{"value": "CHU_PARIS"}],
-        "type": [{"coding": [{"code": "site"}]}],
-        "name": "CHU Paris - Saint-Antoine Site"
-      }'
+    curl -H "Authorization: Api-Key {API_KEY}" "{API_URL}/v4.3.0/organization/?_count=50"
     ```
 
 === "Python"
@@ -33,122 +26,50 @@ Site (Hospital)
     import requests
     
     BASE_URL = "{API_URL}"
+    HEADERS = {"Authorization": "Api-Key {API_KEY}"}
     
-    site = requests.post(f"{BASE_URL}/v4.3.0/organization/", json={
-        "resourceType": "Organization",
-        "identifier": [{"value": "CHU_PARIS"}],
-        "type": [{"coding": [{"code": "site"}]}],
-        "name": "CHU Paris - Saint-Antoine Site"
-    }).json()
+    organizations = requests.get(
+        f"{BASE_URL}/v4.3.0/organization/",
+        params={"_count": 50},
+        headers=HEADERS
+    ).json()
     
-    site_id = site["id"]
-    print(f"✅ Site created: {site['name']} (ID {site_id})")
+    print(f"Total organizations: {organizations['total']}")
+    for entry in organizations.get("entry", []):
+        org = entry["resource"]
+        org_type = org["type"][0]["coding"][0]["code"]
+        parent = org.get("partOf", {}).get("reference", "root")
+        print(f"  [{org_type}] {org['name']} (ID {org['id']}) → parent: {parent}")
     ```
 
-## Step 2: Create Departments
+## Step 2: Retrieve a Specific Organization
 
 === "Python"
     ```python
-    # Cardiology Department
-    cardio = requests.post(f"{BASE_URL}/v4.3.0/organization/", json={
-        "resourceType": "Organization",
-        "identifier": [{"value": "CARDIO"}],
-        "type": [{"coding": [{"code": "department"}]}],
-        "name": "Cardiology Department",
-        "partOf": {"reference": f"Organization/{site_id}"}
-    }).json()
-    cardio_id = cardio["id"]
+    # Retrieve a site by ID
+    org = requests.get(f"{BASE_URL}/v4.3.0/organization/site-1/", headers=HEADERS).json()
     
-    # Neurology Department
-    neuro = requests.post(f"{BASE_URL}/v4.3.0/organization/", json={
-        "resourceType": "Organization",
-        "identifier": [{"value": "NEURO"}],
-        "type": [{"coding": [{"code": "department"}]}],
-        "name": "Neurology Department",
-        "partOf": {"reference": f"Organization/{site_id}"}
-    }).json()
-    neuro_id = neuro["id"]
+    type_code = org["type"][0]["coding"][0]["code"]
+    icon = {"site": "🏥", "department": "🏢", "unit": "🛏️"}.get(type_code, "📍")
     
-    print(f"✅ Departments created: Cardiology (ID {cardio_id}), Neurology (ID {neuro_id})")
+    print(f"{icon} {org['name']} (ID: {org['id']}, Type: {type_code})")
+    if "partOf" in org:
+        print(f"  Parent: {org['partOf']['reference']}")
     ```
 
-!!! warning "partOf Constraint"
-    A **department** must always have a `partOf` pointing to a site or instance.
+## Step 3: Navigate the Parent Chain
 
-## Step 3: Create Care Units
-
-=== "Python"
-    ```python
-    # Cardiology Units
-    units_cardio = []
-    for name in ["Unit A - Intensive Care", "Unit B - Hospitalization", "Unit C - Day Hospital"]:
-        unit = requests.post(f"{BASE_URL}/v4.3.0/organization/", json={
-            "resourceType": "Organization",
-            "identifier": [{"value": f"CARDIO_{name[5]}"}],
-            "type": [{"coding": [{"code": "unit"}]}],
-            "name": f"Cardiology - {name}",
-            "partOf": {"reference": f"Organization/{cardio_id}"}
-        }).json()
-        units_cardio.append(unit)
-        print(f"✅ Unit created: {unit['name']} (ID {unit['id']})")
-    
-    # Neurology Units
-    units_neuro = []
-    for name in ["Stroke Unit", "Epilepsy Unit"]:
-        unit = requests.post(f"{BASE_URL}/v4.3.0/organization/", json={
-            "resourceType": "Organization",
-            "identifier": [{"value": f"NEURO_{name.split()[0].upper()}"}],
-            "type": [{"coding": [{"code": "unit"}]}],
-            "name": f"Neurology - {name}",
-            "partOf": {"reference": f"Organization/{neuro_id}"}
-        }).json()
-        units_neuro.append(unit)
-        print(f"✅ Unit created: {unit['name']} (ID {unit['id']})")
-    ```
-
-!!! warning "partOf Constraint"
-    A **unit** must always have a `partOf` pointing to a department.
-
-## Step 4: Visualize the Hierarchy
-
-=== "Python"
-    ```python
-    def print_hierarchy(org_id, level=0):
-        """Display organization hierarchy recursively."""
-        org = requests.get(f"{BASE_URL}/v4.3.0/organization/{org_id}/").json()
-        
-        indent = "  " * level
-        type_code = org["type"][0]["coding"][0]["code"]
-        icon = {"site": "🏥", "department": "🏢", "unit": "🛏️"}.get(type_code, "📍")
-        
-        print(f"{indent}{icon} {org['name']} (ID: {org['id']}, Type: {type_code})")
-    
-    # Display complete hierarchy
-    print("\n🏥 HOSPITAL HIERARCHY")
-    print("=" * 60)
-    print_hierarchy(site_id)
-    
-    # Display departments
-    for dept_id in [cardio_id, neuro_id]:
-        print_hierarchy(dept_id, level=1)
-        
-        # Display department units
-        dept = requests.get(f"{BASE_URL}/v4.3.0/organization/{dept_id}/").json()
-        # Note: The API does not automatically return children,
-        # you will need to retrieve them via your local variables
-    ```
-
-## Step 5: Navigate Upward (Parent)
+To navigate up the hierarchy, follow the `partOf` reference:
 
 === "Python"
     ```python
     def get_parent_chain(org_id):
-        """Retrieve complete parent chain."""
+        """Retrieve complete parent chain for an organization."""
         chain = []
         current_id = org_id
         
         while current_id:
-            org = requests.get(f"{BASE_URL}/v4.3.0/organization/{current_id}/").json()
+            org = requests.get(f"{BASE_URL}/v4.3.0/organization/{current_id}/", headers=HEADERS).json()
             chain.append({
                 "id": org["id"],
                 "name": org["name"],
@@ -164,7 +85,7 @@ Site (Hospital)
         return chain
     
     # Example: find parents of a unit
-    unit_id = units_cardio[0]["id"]
+    unit_id = "unit-5"
     chain = get_parent_chain(unit_id)
     
     print(f"\n🔗 Hierarchical chain for unit ID {unit_id}:")
@@ -181,106 +102,41 @@ Site (Hospital)
     → CHU Paris - Saint-Antoine Site (site)
 ```
 
-## Complete Script
+## Step 4: Visualize the Hierarchy
 
-```python
-import requests
-
-BASE_URL = "{API_URL}"
-
-def create_organization(code, org_type, name, parent_id=None):
-    """Create an organization with validation."""
-    data = {
-        "resourceType": "Organization",
-        "identifier": [{"value": code}],
-        "type": [{"coding": [{"code": org_type}]}],
-        "name": name
-    }
+=== "Python"
+    ```python
+    def print_hierarchy(org_id, level=0):
+        """Display organization hierarchy."""
+        org = requests.get(f"{BASE_URL}/v4.3.0/organization/{org_id}/", headers=HEADERS).json()
+        
+        indent = "  " * level
+        type_code = org["type"][0]["coding"][0]["code"]
+        icon = {"site": "🏥", "department": "🏢", "unit": "🛏️"}.get(type_code, "📍")
+        
+        print(f"{indent}{icon} {org['name']} (ID: {org['id']}, Type: {type_code})")
     
-    if parent_id:
-        data["partOf"] = {"reference": f"Organization/{parent_id}"}
+    # Display a site and its known children
+    print("\n🏥 HOSPITAL HIERARCHY")
+    print("=" * 60)
     
-    response = requests.post(f"{BASE_URL}/v4.3.0/organization/", json=data)
-    org = response.json()
-    
-    if response.status_code == 201:
-        print(f"✅ {org_type.capitalize()} created: {name} (ID {org['id']})")
-        return org
-    else:
-        print(f"❌ Error: {org}")
-        return None
-
-# 1. Create the site
-site = create_organization("CHU_PARIS", "site", "CHU Paris - Saint-Antoine Site")
-site_id = site["id"]
-
-# 2. Create departments
-cardio = create_organization("CARDIO", "department", "Cardiology Department", site_id)
-neuro = create_organization("NEURO", "department", "Neurology Department", site_id)
-
-# 3. Create Cardiology units
-cardio_units = [
-    create_organization("CARDIO_A", "unit", "Cardiology - Unit A - Intensive Care", cardio["id"]),
-    create_organization("CARDIO_B", "unit", "Cardiology - Unit B - Hospitalization", cardio["id"]),
-    create_organization("CARDIO_C", "unit", "Cardiology - Unit C - Day Hospital", cardio["id"])
-]
-
-# 4. Create Neurology units
-neuro_units = [
-    create_organization("NEURO_STROKE", "unit", "Neurology - Stroke Unit", neuro["id"]),
-    create_organization("NEURO_EPIL", "unit", "Neurology - Epilepsy Unit", neuro["id"])
-]
-
-print(f"\n✅ Complete hierarchy created!")
-print(f"   1 Site → 2 Departments → 5 Units")
-```
-
-## Advanced Use Cases
-
-### Create Hierarchy with Instances
-
-```python
-# Level 0: Instance (Hospital group)
-instance = create_organization("GH_PARIS", "instance", "Paris Hospital Group")
-
-# Level 1: Sites
-site1 = create_organization("SITE_A", "site", "Site A - Pitié-Salpêtrière", instance["id"])
-site2 = create_organization("SITE_B", "site", "Site B - Saint-Antoine", instance["id"])
-
-# Level 2: Departments
-dept = create_organization("CARDIO", "department", "Cardiology", site1["id"])
-
-# Level 3: Units
-unit = create_organization("CARDIO_A", "unit", "Cardiology - Unit A", dept["id"])
-```
-
-### Update an Organization
-
-```python
-# Change department name
-cardio_updated = requests.put(f"{BASE_URL}/v4.3.0/organization/{cardio_id}/", json={
-    "resourceType": "Organization",
-    "identifier": [{"value": "CARDIO"}],
-    "type": [{"coding": [{"code": "department"}]}],
-    "name": "Cardiology and Vascular Diseases Department",
-    "partOf": {"reference": f"Organization/{site_id}"}
-}).json()
-
-print(f"✅ Department updated: {cardio_updated['name']}")
-```
+    # Retrieve the root organization
+    site = requests.get(f"{BASE_URL}/v4.3.0/organization/site-1/", headers=HEADERS).json()
+    print_hierarchy(site["id"])
+    ```
 
 ## Key Points
 
-!!! tip "Creation Order"
-    Always create from top to bottom: Site → Department → Unit
+!!! tip "Navigation Direction"
+    The API provides **upward navigation** (child → parent) via `partOf`. To list children, retrieve all organizations and filter by `partOf`.
 
-!!! warning "Hierarchical Validation"
-    The API automatically validates that hierarchies are correct (e.g., a unit cannot point to a site)
-
-!!! info "Deletion"
-    Deleting an organization may fail if resources reference it (patients, stays, etc.)
+!!! info "Organization Types"
+    - `instance` — Hospital group (root)
+    - `site` — Campus/facility
+    - `department` — Medical service
+    - `unit` — Care unit
 
 ## Next Steps
 
-- [Create a Patient Record](patient-record.md)
-- [Track Patient Journey](patient-journey.md)
+- [Query a Patient Record](patient-record.md)
+- [Trace Patient Journey](patient-journey.md)

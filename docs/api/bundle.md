@@ -113,7 +113,7 @@ When these 3 conditions are met, bulk optimization is **automatically enabled**:
 === "curl"
 
     ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/bundle/ \
+    curl -H "Authorization: Api-Key {API_KEY}" -X POST {API_URL}/v4.3.0/bundle/ \
       -H "Content-Type: application/json" \
       -d '{
         "resourceType": "Bundle",
@@ -238,7 +238,7 @@ When these 3 conditions are met, bulk optimization is **automatically enabled**:
     response = requests.post(
         "{API_URL}/v4.3.0/bundle/",
         json=bundle,
-        headers={"Content-Type": "application/json"}
+        headers={"Authorization": "Api-Key {API_KEY}", "Content-Type": "application/json"}
     )
 
     if response.status_code == 200:

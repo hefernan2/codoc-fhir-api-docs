@@ -11,40 +11,31 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 ### Thesaurus
 
 <div class="api-endpoint">
-  <span class="http-method post">POST</span>
+  <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/codesystem/</span>
 </div>
 <div class="api-endpoint">
   <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/codesystem/{code}/</span>
 </div>
-<div class="api-endpoint">
-  <span class="http-method put">PUT</span>
-  <span class="endpoint-path">/v4.3.0/codesystem/{code}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method delete">DELETE</span>
-  <span class="endpoint-path">/v4.3.0/codesystem/{code}/</span>
-</div>
 
 ### Concepts
 
 <div class="api-endpoint">
-  <span class="http-method post">POST</span>
+  <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/codesystem/{code}/concept/</span>
 </div>
 <div class="api-endpoint">
   <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/codesystem/{code}/concept/{concept_code}/</span>
 </div>
-<div class="api-endpoint">
-  <span class="http-method put">PUT</span>
-  <span class="endpoint-path">/v4.3.0/codesystem/{code}/concept/{concept_code}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method delete">DELETE</span>
-  <span class="endpoint-path">/v4.3.0/codesystem/{code}/concept/{concept_code}/</span>
-</div>
+
+## Search Parameters
+
+No filter parameters are available for CodeSystem. The full list of thesauruses is returned (paginated).
+
+!!! info "Public endpoint"
+    This endpoint does not require authentication.
 
 ## Field Structure
 
@@ -66,220 +57,92 @@ The **CodeSystem** resource represents medical thesauruses (ICD10, ATC, CCAM, cu
 | `code` | code | ✅ Yes | Unique code in thesaurus |
 | `display` | string | ✅ Yes | Concept label |
 
-## Create a Thesaurus
+## List Thesauruses
 
-=== "curl"
-    ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/codesystem/ \
-      -H "Content-Type: application/json" \
-      -d '{
-          "resourceType": "CodeSystem",
-          "url": "urn:codoc:fhir:codesystem:CIM10-FR",
-          "identifier": [
-            {
-              "use": "official",
-              "value": "1"
-            },
-            {
-              "use": "usual",
-              "value": "CIM10-FR"
-            }
-          ],
-          "name": "CIM10-FR",
-          "title": "CIM-10 French Classification",
-          "status": "active",
-          "content": "complete"
-      }'
-    ```
+```bash
+curl -H "Authorization: Api-Key {API_KEY}" "{API_URL}/v4.3.0/codesystem/?_count=20"
+```
 
-=== "Python"
-    ```python
-    thesaurus = {
-        "resourceType": "CodeSystem",
-        "url": "urn:codoc:fhir:codesystem:CIM10-FR",
-        "identifier": [
-          {
-            "use": "official",
-            "value": "1"
-          },
-          {
-            "use": "usual",
-            "value": "CIM10-FR"
-          }
-        ],
-        "name": "CIM10-FR",
-        "title": "CIM-10 French Classification",
-        "status": "active",
-        "content": "complete"
-    }
-    
-    response = requests.post("{API_URL}/v4.3.0/codesystem/", json=thesaurus)
-    ```
+```python
+import requests
 
-## Add Concepts
+response = requests.get(
+    "{API_URL}/v4.3.0/codesystem/",
+    params={"_count": 20}
+)
 
-=== "curl (single concept)"
-    ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/ \
-    -H "Content-Type: application/json" \
-    -d   '{
-          "resourceType": "CodeSystemConcept",
-          "code": "PENICILLIN",
-          "display": "Penicillin allergy"
-      }'
-    ```
-
-=== "curl (multiple concepts)"
-    ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/ \
-      -H "Content-Type: application/json" \
-      -d '{
-        "concept": [
-          {
-            "code": "PENICILLIN",
-            "display": "Penicillin allergy"
-          },
-          {
-            "code": "PEANUT",
-            "display": "Peanut allergy"
-          },
-          {
-            "code": "LATEX",
-            "display": "Latex allergy"
-          }
-        ]
-      }'
-    ```
-
-=== "Python"
-    ```python
-    # Add multiple concepts at once
-    concepts = [
-        {"code": "PENICILLIN", "display": "Penicillin allergy"},
-        {"code": "PEANUT", "display": "Peanut allergy"},
-        {"code": "LATEX", "display": "Latex allergy"}
-    ]
-    
-    response = requests.post(
-        "{API_URL}/v4.3.0/codesystem/ALLERGIES/concept/",
-        json={"concept": concepts}
-    )
-    ```
+bundle = response.json()
+print(f"Total: {bundle['total']} thesauruses")
+for entry in bundle.get("entry", []):
+    cs = entry["resource"]
+    print(f"  {cs['name']}: {cs.get('title', 'N/A')}")
+```
 
 ## Retrieve a Thesaurus with Concepts
 
-=== "curl"
-    ```bash
-    curl -u username:password {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/{CONCEPT_ID}
-    ```
+```bash
+curl -H "Authorization: Api-Key {API_KEY}" {API_URL}/v4.3.0/codesystem/ALLERGIES/
+```
+
+```python
+import requests
+
+thesaurus = requests.get("{API_URL}/v4.3.0/codesystem/ALLERGIES/").json()
+
+print(f"Thesaurus: {thesaurus['name']}")
+print(f"Status: {thesaurus['status']}")
+print(f"Number of concepts: {len(thesaurus.get('concept', []))}")
+
+for concept in thesaurus.get('concept', []):
+    print(f"  {concept['code']}: {concept['display']}")
+```
 
 **Response:**
 ```json
 {
-  [
-    {
-      "id":"11",
-      "code":"PENICILLIN",
-      "display":"Penicillin allergy"
-    },
-    {
-      "id":"12",
-      "code":"PEANUT",
-      "display":"Peanut allergy"
-    },
-    {
-      "id":"13",
-      "code":"LATEX",
-      "display":"Latex allergy"
-    }
+  "resourceType": "CodeSystem",
+  "id": "1",
+  "name": "ALLERGIES",
+  "title": "Allergies Thesaurus",
+  "status": "active",
+  "content": "complete",
+  "concept": [
+    {"id": "11", "code": "PENICILLIN", "display": "Penicillin allergy"},
+    {"id": "12", "code": "PEANUT", "display": "Peanut allergy"},
+    {"id": "13", "code": "LATEX", "display": "Latex allergy"}
   ]
 }
 ```
 
-## Update a Concept
+## Retrieve a Single Concept
 
-=== "curl"
-    ```bash
-    curl -u username:password -X PUT {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/{PENICILLIN_ID}/ \
-      -H "Content-Type: application/json" \
-      -d '{
-            "resourceType": "CodeSystemConcept",
-            "code": "PENICILLIN",
-            "display": "Penicillin and derivatives allergy"
-      }'
-    ```
+```bash
+curl -H "Authorization: Api-Key {API_KEY}" {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/PENICILLIN/
+```
 
-## Delete a Concept
+## Filter Observations by Thesaurus
 
-=== "curl"
-    ```bash
-    curl -u username:password -X DELETE {API_URL}/v4.3.0/codesystem/ALLERGIES/concept/{CONCEPT_ID}/
-    ```
+You can list observations and filter by thesaurus on the application side:
 
-## Use Cases
+```python
+import requests
 
-### Create a Custom Thesaurus
+# List observations with pagination
+response = requests.get(f"{BASE_URL}/v4.3.0/observation/?_count=50")
+bundle = response.json()
 
-=== "curl"
-    ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/codesystem/ \
-      -H "Content-Type: application/json" \
-      -d '{
-        "resourceType": "CodeSystem",
-        "url": "urn:codoc:fhir:codesystem:COVID_SYMPTOMS",
-        "identifier": [
-          {
-            "use": "official",
-            "value": "1"
-          },
-          {
-            "use": "usual",
-            "value": "COVID_SYMPTOMS"
-          }
-        ],
-        "name": "COVID-19 Symptoms",
-        "title": "COVID-19 Symptoms",
-        "status": "active",
-        "content": "complete"
-      }'
-    ```
-
-=== "Python"
-    ```python
-    # 1. Create the thesaurus
-    thesaurus = requests.post("{API_URL}/v4.3.0/codesystem/", json={
-        "resourceType": "CodeSystem",
-        "url": "urn:codoc:fhir:codesystem:COVID_SYMPTOMS",
-        "identifier": [
-          {
-            "use": "official",
-            "value": "1"
-          },
-          {
-            "use": "usual",
-            "value": "COVID_SYMPTOMS"
-          }
-        ],
-        "name": "COVID-19 Symptoms",
-        "title": "COVID-19 Symptoms",
-        "status": "active",
-        "content": "complete"
-    }).json()
+# Filter observations by COVID thesaurus
+covid_observations = []
+for entry in bundle.get('entry', []):
+    obs = entry['resource']
     
-    # 2. Add concepts
-    concepts = [
-        {"code": "FEVER", "display": "Fever"},
-        {"code": "COUGH", "display": "Dry cough"},
-        {"code": "FATIGUE", "display": "Intense fatigue"},
-        {"code": "ANOSMIA", "display": "Loss of smell"},
-        {"code": "AGEUSIA", "display": "Loss of taste"}
-    ]
-    
-    requests.post(
-        "{API_URL}/v4.3.0/codesystem/COVID_SYMPTOMS/concept/",
-        json={"concept": concepts}
-    )
-    ```
+    # Check if the code belongs to the COVID thesaurus
+    system = obs['code']['coding'][0].get('system', '')
+    if 'COVID_SYMPTOMES' in system:
+        covid_observations.append(obs)
+
+print(f"✅ {len(covid_observations)} COVID observations found")
+```
 
 ## Related Resources
 
@@ -292,6 +155,5 @@ All thesauruses are used by:
 - [DiagnosticReport](diagnosticreport.md) - "Diagnostic" thesaurus
 
 <div class="quick-links">
-  <a href="../../guides/custom-thesaurus/">📖 Guide: Create a Custom Thesaurus</a>
-  <a href="../../troubleshooting/">🔧 Troubleshooting</a>
+  <a href="../../guides/custom-thesaurus/">📖 Guide: Query Medical Vocabularies</a>
 </div>

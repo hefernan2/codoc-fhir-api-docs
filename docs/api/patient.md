@@ -6,26 +6,14 @@ title: Patient
 
 The **Patient** resource represents patient identity and demographic data.
 
-## Endpoint
+## Endpoints
 
 <div class="api-endpoint">
-  <span class="http-method post">POST</span>
+  <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/patient/</span>
 </div>
 <div class="api-endpoint">
   <span class="http-method get">GET</span>
-  <span class="endpoint-path">/v4.3.0/patient/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method put">PUT</span>
-  <span class="endpoint-path">/v4.3.0/patient/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method patch">PATCH</span>
-  <span class="endpoint-path">/v4.3.0/patient/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method delete">DELETE</span>
   <span class="endpoint-path">/v4.3.0/patient/{id}/</span>
 </div>
 
@@ -54,57 +42,58 @@ The **Patient** resource represents patient identity and demographic data.
 | `managingOrganization` | Reference | No | `Patient.managing_organization` | Managing unit |
 | `link[]` | BackboneElement | No | `Patient.fused_into` | Patient merging |
 
-## Create a Patient
+## Search Parameters
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `birthdate` | date | Date of birth (FHIR prefixes: `ge`, `le`, `gt`, `lt`, `ne`) | `?birthdate=ge1990-01-01` |
+| `death-date` | date | Date of death (FHIR prefixes supported) | `?death-date=le2024-01-01` |
+| `_lastUpdated` | date | Last update date (FHIR prefixes supported) | `?_lastUpdated=ge2024-01-01` |
+
+## List Patients
 
 === "curl"
     ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/patient/ \
-      -H "Content-Type: application/json" \
-      -d '{
-        "resourceType": "Patient",
-        "identifier": [
-          {
-            "use": "usual",
-            "value": "IPP123456"
-          }
-        ],
-        "name": [
-          {
-            "family": "Smith",
-            "given": ["John", "Peter"]
-          }
-        ],
-        "gender": "male",
-        "birthDate": "1980-05-15",
-        "managingOrganization": {
-          "reference": "Organization/department-1"
-        }
-      }'
+    curl -H "Authorization: Api-Key {API_KEY}" "{API_URL}/v4.3.0/patient/?_count=20"
     ```
 
 === "Python"
     ```python
     import requests
     
-    patient = {
-        "resourceType": "Patient",
-        "identifier": [{"use": "usual", "value": "IPP123456"}],
-        "name": [{"family": "Smith", "given": ["John", "Peter"]}],
-        "gender": "male",
-        "birthDate": "1980-05-15",
-        "managingOrganization": {"reference": "Organization/department-1"}
-    }
-    
-    response = requests.post(
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get(
         "{API_URL}/v4.3.0/patient/",
-        json=patient
+        params={"_count": 20},
+        headers=headers
     )
     
-    print(f"Status: {response.status_code}")
-    print(f"Patient ID: {response.json()['id']}")
+    bundle = response.json()
+    print(f"Total: {bundle['total']} patients")
+    for entry in bundle.get("entry", []):
+        p = entry["resource"]
+        print(f"  ID {p['id']}: {p.get('name', [{}])[0].get('family', 'N/A')}")
     ```
 
-**Response (201 Created):**
+## Retrieve a Patient
+
+=== "curl"
+    ```bash
+    curl -H "Authorization: Api-Key {API_KEY}" {API_URL}/v4.3.0/patient/123/
+    ```
+
+=== "Python"
+    ```python
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get("{API_URL}/v4.3.0/patient/123/", headers=headers)
+    patient = response.json()
+    
+    print(f"Last name: {patient['name'][0]['family']}")
+    print(f"First name: {patient['name'][0]['given'][0]}")
+    print(f"Gender: {patient['gender']}")
+    ```
+
+**Response (200 OK):**
 ```json
 {
   "resourceType":"Patient",
@@ -135,59 +124,6 @@ The **Patient** resource represents patient identity and demographic data.
 }
 ```
 
-## Retrieve a Patient
-
-=== "curl"
-    ```bash
-    curl -u username:password {API_URL}/v4.3.0/patient/123/
-    ```
-
-=== "Python"
-    ```python
-    response = requests.get("{API_URL}/v4.3.0/patient/123/")
-    patient = response.json()
-    
-    print(f"Last name: {patient['name'][0]['family']}")
-    print(f"First name: {patient['name'][0]['given'][0]}")
-    print(f"Gender: {patient['gender']}")
-    ```
-
-## Declare a Death
-
-    curl -u username:password -X PATCH {API_URL}/v4.3.0/patient/123/ \
-      -H "Content-Type: application/json" \
-      -d '{
-        "resourceType": "Patient",
-        "deceasedDateTime": "2024-01-15T14:30:00Z"
-      }'
-    ```
-
-    curl -u username:password -X PATCH {API_URL}/v4.3.0/patient/123/ \
-      -H "Content-Type: application/json" \
-      -d '{
-        "resourceType": "Patient",
-        "deceasedBoolean": true
-      }'
-    ```
-
-!!! warning "Mutual exclusivity"
-    Use **either** `deceasedBoolean` **or** `deceasedDateTime`, never both.
-
-    curl -u username:password -X PATCH {API_URL}/v4.3.0/patient/456/ \
-      -H "Content-Type: application/json" \
-      -d '{
-        "resourceType": "Patient",
-        "link": [
-          {
-            "other": {"reference": "Patient/123"},
-            "type": "replaced-by"
-          }
-        ]
-      }'
-    ```
-
-**Meaning:** Patient 456 has been merged into patient 123.
-
 ## Multi-IPP (Multiple Identifiers)
 
 A patient can have multiple identifiers:
@@ -209,53 +145,6 @@ A patient can have multiple identifiers:
 - `use: "official"` → Internal Codoc ID
 - `use: "usual"` → External IPP/NIP
 
-## Common Errors
-
-### Error 400 - Missing Required Field
-
-```json
-{
-  "resourceType": "OperationOutcome",
-  "issue": [{
-    "severity": "error",
-    "code": "required",
-    "diagnostics": "Field 'birthDate' is required"
-  }]
-}
-```
-
-**Solution:** Verify that all required fields are present.
-
-### Error 400 - Invalid Date Format
-
-```json
-{
-  "resourceType": "OperationOutcome",
-  "issue": [{
-    "severity": "error",
-    "code": "invalid",
-    "diagnostics": "Invalid date format. Expected YYYY-MM-DD"
-  }]
-}
-```
-
-**Solution:** Use ISO 8601 format for `birthDate` (YYYY-MM-DD).
-
-### Error 404 - Organization Not Found
-
-```json
-{
-  "resourceType": "OperationOutcome",
-  "issue": [{
-    "severity": "error",
-    "code": "not-found",
-    "diagnostics": "Organization with ID 999 does not exist"
-  }]
-}
-```
-
-**Solution:** Verify that the ID in `managingOrganization.reference` exists.
-
 ## CNIL Compliance
 
 Sensitive data is **optional** (nullable) to comply with CNIL constraints:
@@ -263,45 +152,6 @@ Sensitive data is **optional** (nullable) to comply with CNIL constraints:
 - `name` can be empty (anonymous patients)
 - `gender` can be "unknown"
 - `birthDate` can be approximate or absent
-
-## Use Cases
-
-### Create an Anonymous Patient
-
-```json
-{
-  "resourceType": "Patient",
-  "identifier": [{"value": "ANON_001"}],
-  "name": [{"family": "Anonymous", "given": ["Patient"]}],
-  "gender": "unknown",
-  "birthDate": "1970-01-01"
-}
-```
-
-### Patient with Phone and Address
-
-```json
-{
-  "resourceType": "Patient",
-  "identifier": [{"value": "IPP123"}],
-  "name": [{"family": "Smith", "given": ["John"]}],
-  "telecom": [
-    {"system": "phone", "value": "01 23 45 67 89", "use": "home"},
-    {"system": "email", "value": "john.smith@email.com"}
-  ],
-  "address": [
-    {
-      "use": "home",
-      "line": ["123 Peace Street"],
-      "city": "Paris",
-      "postalCode": "75001",
-      "country": "FR"
-    }
-  ],
-  "gender": "male",
-  "birthDate": "1980-05-15"
-}
-```
 
 ## Related Resources
 
@@ -314,5 +164,5 @@ Sensitive data is **optional** (nullable) to comply with CNIL constraints:
 <div class="quick-links">
   <a href="../organization/">🏥 Organization</a>
   <a href="../encounter/">🛏️ Encounter</a>
-  <a href="../../guides/patient-record/">📖 Guide: Create a Patient Record</a>
+  <a href="../../guides/patient-record/">📖 Guide: Query a Patient Record</a>
 </div>

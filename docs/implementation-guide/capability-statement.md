@@ -13,25 +13,24 @@ This page describes the capabilities of a Codoc FHIR server.
 | **FHIR Version** | 4.3.0 (R4B) |
 | **Mode** | Server |
 | **Formats** | JSON, XML |
-| **Authentication** | HTTP Basic Auth |
+| **Authentication** | API Key (`Authorization: Api-Key`) |
 | **Base URL** | `{API_URL}/v4.3.0/` |
 
 ---
 
 ## Supported Resources
 
-| Resource | Profile | Create | Read | Update | Delete | Search |
-|----------|---------|:------:|:----:|:------:|:------:|:------:|
-| Patient | CodocPatient | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Organization | CodocOrganization | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Encounter | CodocEncounter | ✅ | ✅ | ✅ | ✅ | ✅ |
-| DocumentReference | CodocDocumentReference | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Observation | CodocLabObservation | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Observation | CodocPhenotypeObservation | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Procedure | CodocProcedure | ✅ | ✅ | ✅ | ✅ | ✅ |
-| MedicationRequest | CodocMedicationRequest | ✅ | ✅ | ✅ | ✅ | ✅ |
-| DiagnosticReport | CodocDiagnosticReport | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Bundle | - | ✅ | ✅ | ✅ | ✅ | - |
+| Resource | Profile | Read | Search |
+|----------|---------|:----:|:------:|
+| Patient | CodocPatient | ✅ | ✅ |
+| Organization | CodocOrganization | ✅ | ✅ |
+| Encounter | CodocEncounter | ✅ | ✅ |
+| DocumentReference | CodocDocumentReference | ✅ | ✅ |
+| Observation | CodocLabObservation | ✅ | ✅ |
+| Observation | CodocPhenotypeObservation | ✅ | ✅ |
+| Procedure | CodocProcedure | ✅ | ✅ |
+| MedicationRequest | CodocMedicationRequest | ✅ | ✅ |
+| DiagnosticReport | CodocDiagnosticReport | ✅ | ✅ |
 
 ---
 
@@ -40,113 +39,140 @@ This page describes the capabilities of a Codoc FHIR server.
 ### Patient
 
 ```
-POST   /v4.3.0/patient/           # Create
+GET    /v4.3.0/patient/           # List
 GET    /v4.3.0/patient/{id}/      # Read
-PUT    /v4.3.0/patient/{id}/      # Update
-PATCH  /v4.3.0/patient/{id}/      # Partial Update
-DELETE /v4.3.0/patient/{id}/      # Delete
 ```
 
 **Search Parameters:**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `identifier` | token | Patient IPP |
-| `name` | string | Patient name |
-| `birthdate` | date | Date of birth |
-| `gender` | token | Gender |
+| `birthdate` | date | Date of birth (FHIR prefixes: `ge`, `le`, `gt`, `lt`, `ne`) |
+| `death-date` | date | Date of death (FHIR prefixes supported) |
+| `_lastUpdated` | date | Last update date (FHIR prefixes supported) |
 
 ---
 
 ### Organization
 
 ```
-POST   /v4.3.0/organization/           # Create
+GET    /v4.3.0/organization/           # List
 GET    /v4.3.0/organization/{id}/      # Read
-PUT    /v4.3.0/organization/{id}/      # Update
-DELETE /v4.3.0/organization/{id}/      # Delete
 ```
 
 **Search Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `identifier` | token | Organization code |
-| `type` | token | Organization type |
-| `partof` | reference | Parent organization |
+No search parameters available. Returns the full list (paginated).
 
 ---
 
 ### Encounter
 
 ```
-POST   /v4.3.0/encounter/              # Create Stay or Movement
+GET    /v4.3.0/encounter/              # List
 GET    /v4.3.0/encounter/stay/{id}/    # Read Stay
 GET    /v4.3.0/encounter/movement/{id}/ # Read Movement
-PATCH  /v4.3.0/encounter/stay/{id}/    # Update Stay
-DELETE /v4.3.0/encounter/stay/{id}/    # Delete Stay
 ```
 
 **Search Parameters:**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `patient` | reference | Patient reference |
-| `status` | token | Encounter status |
-| `class` | token | Encounter class |
-| `date` | date | Encounter period |
+| `patient` | integer | Patient ID |
+| `date` | date | Encounter period (FHIR prefixes: `ge`, `le`, `gt`, `lt`, `ne`) |
+| `_lastUpdated` | date | Last update date (FHIR prefixes supported) |
 
 ---
 
 ### DocumentReference
 
 ```
-POST   /v4.3.0/documentreference/           # Create
+GET    /v4.3.0/documentreference/           # List
 GET    /v4.3.0/documentreference/{id}/      # Read
-PUT    /v4.3.0/documentreference/{id}/      # Update
-DELETE /v4.3.0/documentreference/{id}/      # Delete
 ```
 
 **Search Parameters:**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `patient` | reference | Patient reference |
-| `encounter` | reference | Encounter reference |
-| `date` | date | Document date |
-| `author` | reference | Author reference |
+| `patient` | integer | Patient ID |
+| `encounter` | integer | Stay ID |
+| `date` | date | Document date (FHIR prefixes: `ge`, `le`, `gt`, `lt`, `ne`) |
+| `_lastUpdated` | date | Last update date (FHIR prefixes supported) |
 
 ---
 
 ### Observation
 
 ```
-POST   /v4.3.0/observation/                  # Create Lab Observation
-POST   /v4.3.0/observation/phenotype/        # Create Phenotype
+GET    /v4.3.0/observation/                  # List Lab Observations
+GET    /v4.3.0/observation/phenotype/        # List Phenotypes
 GET    /v4.3.0/observation/{id}/             # Read
 GET    /v4.3.0/observation/phenotype/{id}/   # Read Phenotype
-PUT    /v4.3.0/observation/{id}/             # Update
-DELETE /v4.3.0/observation/{id}/             # Delete
 ```
 
 **Search Parameters:**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `patient` | reference | Patient reference |
-| `code` | token | Observation code |
-| `date` | date | Observation date |
-| `status` | token | Observation status |
+| `patient` | integer | Patient ID |
+| `encounter` | integer | Stay ID |
+| `date` | date | Observation date (FHIR prefixes: `ge`, `le`, `gt`, `lt`, `ne`) |
+| `_lastUpdated` | date | Last update date (FHIR prefixes supported) |
 
 ---
 
-### Bundle
+### Procedure
 
 ```
-POST   /v4.3.0/bundle/    # Batch create
+GET    /v4.3.0/procedure/         # List
+GET    /v4.3.0/procedure/{id}/    # Read
 ```
 
-Supported bundle type: `batch`
+**Search Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `patient` | integer | Patient ID |
+| `encounter` | integer | Stay ID |
+| `date` | date | Procedure date (FHIR prefixes: `ge`, `le`, `gt`, `lt`, `ne`) |
+| `_lastUpdated` | date | Last update date (FHIR prefixes supported) |
+
+---
+
+### MedicationRequest
+
+```
+GET    /v4.3.0/medicationrequest/         # List
+GET    /v4.3.0/medicationrequest/{id}/    # Read
+```
+
+**Search Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `patient` | integer | Patient ID |
+| `encounter` | integer | Stay ID |
+| `date` | date | Prescription date (FHIR prefixes: `ge`, `le`, `gt`, `lt`, `ne`) |
+| `_lastUpdated` | date | Last update date (FHIR prefixes supported) |
+
+---
+
+### DiagnosticReport
+
+```
+GET    /v4.3.0/diagnosticreport/         # List
+GET    /v4.3.0/diagnosticreport/{id}/    # Read
+```
+
+**Search Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `patient` | integer | Patient ID |
+| `encounter` | integer | Stay ID |
+| `date` | date | Examination date (FHIR prefixes: `ge`, `le`, `gt`, `lt`, `ne`) |
+| `_lastUpdated` | date | Last update date (FHIR prefixes supported) |
 
 ---
 
@@ -181,12 +207,11 @@ Errors are returned as `OperationOutcome` resources:
 
 | Code | Meaning |
 |------|---------|
-| `200` | OK - Successful read/update |
-| `201` | Created - Successful create |
-| `400` | Bad Request - Validation error |
+| `200` | OK - Successful read |
 | `401` | Unauthorized - Authentication required |
+| `403` | Forbidden - Insufficient permissions |
 | `404` | Not Found - Resource not found |
-| `409` | Conflict - Version conflict |
+| `429` | Too Many Requests - Rate limit reached |
 | `500` | Server Error - Internal error |
 
 ---
@@ -195,15 +220,21 @@ Errors are returned as `OperationOutcome` resources:
 
 ### Authentication
 
-All requests require HTTP Basic Authentication:
+All requests require an API key passed as an HTTP header:
 
 ```bash
-curl -u username:password {API_URL}/v4.3.0/patient/123/
+curl -H "Authorization: Api-Key {API_KEY}" {API_URL}/v4.3.0/patient/123/
 ```
+
+The key format is `Api-Key <key>` where `<key>` starts with `fhir_`.
+
+!!! info "Public endpoints"
+    The following endpoints do not require authentication:
+    `/v4.3.0/codesystem/`, `/v4.3.0/codesystem/{code}/concept/`, `/v4.3.0/observation/phenotype/`
 
 ### Authorization
 
-Access control is managed at the organization level. Users can only access data from organizations they are authorized to view.
+Each API key is created with permissions scoped to specific FHIR resources. A key may grant access to one resource (e.g., `Patient` only), a subset, or all resources (`*`). Contact your administrator to obtain a key or to adjust which resources it can access.
 
 ---
 

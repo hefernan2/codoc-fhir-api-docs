@@ -6,22 +6,14 @@ title: Observation (patient-data)
 
 This sub-resource represents **patient-specific traits** (weight, height, allergies, etc.).
 
-## Endpoint
+## Endpoints
 
 <div class="api-endpoint">
-  <span class="http-method post">POST</span>
+  <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/observation/patient-data/</span>
 </div>
 <div class="api-endpoint">
   <span class="http-method get">GET</span>
-  <span class="endpoint-path">/v4.3.0/observation/patient-data/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method put">PUT</span>
-  <span class="endpoint-path">/v4.3.0/observation/patient-data/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method delete">DELETE</span>
   <span class="endpoint-path">/v4.3.0/observation/patient-data/{id}/</span>
 </div>
 
@@ -32,50 +24,49 @@ This sub-resource represents **patient-specific traits** (weight, height, allerg
 | **Endpoint** | `/observation/` | `/observation/patient-data/` |
 | **Model** | `Enrsem` (biology) | `PatientData` (patient traits) |
 | **Usage** | Laboratory results | Patient characteristics |
-| **Thesaurus** | "Biologie" | No filter |## Create a Patient Data Item
+| **Thesaurus** | "Biologie" | No filter |
+
+## Search Parameters
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `patient` | integer | Filter by patient ID | `?patient=123` |
+
+## List Patient Data
 
 === "curl"
     ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/observation/patient-data/ \
-      -H "Content-Type: application/json" \
-      -d '{
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [{
-            "system": "http://loinc.org",
-            "code": "29463-7",
-            "display": "Body Weight"
-          }]
-        },
-        "subject": {"reference": "Patient/1"},
-        "effectiveDateTime": "2024-01-15T10:00:00Z",
-        "valueQuantity": {
-          "value": 75.5,
-          "unit": "kg",
-          "code": "kg"
-        }
-      }'
+    curl -H "Authorization: Api-Key {API_KEY}" "{API_URL}/v4.3.0/observation/patient-data/?_count=20"
     ```
 
 === "Python"
     ```python
-    weight = {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {"coding": [{"code": "29463-7", "display": "Body Weight"}]},
-        "subject": {"reference": "Patient/1"},
-        "effectiveDateTime": "2024-01-15T10:00:00Z",
-        "valueQuantity": {"value": 75.5, "unit": "kg"}
-    }
+    import requests
     
-    response = requests.post(
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get(
         "{API_URL}/v4.3.0/observation/patient-data/",
-        json=weight
+        params={"_count": 20},
+        headers=headers
     )
+    
+    bundle = response.json()
+    print(f"Total: {bundle['total']} patient data items")
+    for entry in bundle.get("entry", []):
+        obs = entry["resource"]
+        code = obs["code"]["coding"][0].get("display", obs["code"]["coding"][0]["code"])
+        value = obs.get("valueQuantity", {})
+        print(f"  {code}: {value.get('value', 'N/A')} {value.get('unit', '')}")
     ```
 
-## Common Use Cases
+## Retrieve a Patient Data Item
+
+=== "curl"
+    ```bash
+    curl -H "Authorization: Api-Key {API_KEY}" {API_URL}/v4.3.0/observation/patient-data/1/
+    ```
+
+## Common Data Types
 
 ### Patient Weight
 
@@ -113,42 +104,6 @@ This sub-resource represents **patient-specific traits** (weight, height, allerg
   "code": {"coding": [{"code": "ALLERGIE", "display": "Allergy"}]},
   "valueString": "Penicillin"
 }
-```
-
-## Complete Patient Profile
-
-```python
-patient_id = "123"
-
-# Weight
-requests.post("/v4.3.0/observation/patient-data/", json={
-    "resourceType": "Observation",
-    "status": "final",
-    "code": {"coding": [{"code": "29463-7"}]},
-    "subject": {"reference": f"Patient/{patient_id}"},
-    "effectiveDateTime": "2024-01-15T10:00:00Z",
-    "valueQuantity": {"value": 75.5, "unit": "kg"}
-})
-
-# Height
-requests.post("/v4.3.0/observation/patient-data/", json={
-    "resourceType": "Observation",
-    "status": "final",
-    "code": {"coding": [{"code": "8302-2"}]},
-    "subject": {"reference": f"Patient/{patient_id}"},
-    "effectiveDateTime": "2024-01-15T10:00:00Z",
-    "valueQuantity": {"value": 178, "unit": "cm"}
-})
-
-# Blood group
-requests.post("/v4.3.0/observation/patient-data/", json={
-    "resourceType": "Observation",
-    "status": "final",
-    "code": {"coding": [{"code": "883-9"}]},
-    "subject": {"reference": f"Patient/{patient_id}"},
-    "effectiveDateTime": "2024-01-15T10:00:00Z",
-    "valueCodeableConcept": {"coding": [{"code": "A+"}]}
-})
 ```
 
 ## Related Resources

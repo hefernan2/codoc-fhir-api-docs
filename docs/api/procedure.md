@@ -6,22 +6,14 @@ title: Procedure
 
 The **Procedure** resource represents medical acts (surgery, interventions, technical examinations).
 
-## Endpoint
+## Endpoints
 
 <div class="api-endpoint">
-  <span class="http-method post">POST</span>
+  <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/procedure/</span>
 </div>
 <div class="api-endpoint">
   <span class="http-method get">GET</span>
-  <span class="endpoint-path">/v4.3.0/procedure/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method put">PUT</span>
-  <span class="endpoint-path">/v4.3.0/procedure/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method delete">DELETE</span>
   <span class="endpoint-path">/v4.3.0/procedure/{id}/</span>
 </div>
 
@@ -44,54 +36,57 @@ This resource filters on `thesaurus_code = "Acte"` (configurable via `THESAURUS_
 | `performer[].function` | CodeableConcept | ❌ No | "department" or "unit" | Auto-determined |
 | `performedDateTime` | dateTime | ✅ Yes | Data.start_date | Required in request |
 
-## Create a Medical Act
+## Search Parameters
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `patient` | integer | Filter by patient ID | `?patient=123` |
+| `encounter` | integer | Filter by stay ID | `?encounter=789` |
+| `date` | date | Procedure date (FHIR prefixes: `ge`, `le`, `gt`, `lt`, `ne`) | `?date=ge2024-01-01` |
+| `_lastUpdated` | date | Last update date (FHIR prefixes supported) | `?_lastUpdated=ge2024-01-01` |
+
+## List Procedures
 
 === "curl"
     ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/procedure/ \
-      -H "Content-Type: application/json" \
-      -d '{
-        "resourceType": "Procedure",
-        "status": "completed",
-        "code": {
-          "coding": [{
-            "code": "COLO001",
-            "display": "Colonoscopy"
-          }]
-        },
-        "subject": {"reference": "Patient/1"},
-        "encounter": {"reference": "Encounter/1"},
-        "performedDateTime": "2024-01-15T14:00:00Z",
-        "performer": [
-          {
-            "actor": {"reference": "Organization/department-1"}
-          }
-        ]
-      }'
+    curl -H "Authorization: Api-Key {API_KEY}" "{API_URL}/v4.3.0/procedure/?_count=20"
     ```
 
 === "Python"
     ```python
-    procedure = {
-        "resourceType": "Procedure",
-        "status": "completed",
-        "code": {
-          "coding": [{
-            "code": "COLO001",
-            "display": "Colonoscopy"
-          }]
-        },
-        "subject": {"reference": "Patient/1"},
-        "encounter": {"reference": "Encounter/1"},
-        "performedDateTime": "2024-01-15T14:00:00Z",
-        "performer": [
-          {
-            "actor": {"reference": "Organization/department-1"}
-          }
-        ]
-    }
+    import requests
     
-    response = requests.post("{API_URL}/v4.3.0/procedure/", json=procedure)
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get(
+        "{API_URL}/v4.3.0/procedure/",
+        params={"_count": 20},
+        headers=headers
+    )
+    
+    bundle = response.json()
+    print(f"Total: {bundle['total']} procedures")
+    for entry in bundle.get("entry", []):
+        proc = entry["resource"]
+        code = proc["code"]["coding"][0].get("display", proc["code"]["coding"][0]["code"])
+        print(f"  ID {proc['id']}: {code} - {proc['performedDateTime']}")
+    ```
+
+## Retrieve a Procedure
+
+=== "curl"
+    ```bash
+    curl -H "Authorization: Api-Key {API_KEY}" {API_URL}/v4.3.0/procedure/1/
+    ```
+
+=== "Python"
+    ```python
+    headers = {"Authorization": "Api-Key {API_KEY}"}
+    response = requests.get("{API_URL}/v4.3.0/procedure/1/", headers=headers)
+    proc = response.json()
+    
+    print(f"Code: {proc['code']['coding'][0]['display']}")
+    print(f"Date: {proc['performedDateTime']}")
+    print(f"Patient: {proc['subject']['reference']}")
     ```
 
 ## Related Resources

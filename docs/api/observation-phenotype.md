@@ -6,22 +6,14 @@ title: Observation (phenotype)
 
 This sub-resource represents **phenotypes automatically extracted** from clinical documents by NLP (natural language processing).
 
-## Endpoint
+## Endpoints
 
 <div class="api-endpoint">
-  <span class="http-method post">POST</span>
+  <span class="http-method get">GET</span>
   <span class="endpoint-path">/v4.3.0/observation/phenotype/</span>
 </div>
 <div class="api-endpoint">
   <span class="http-method get">GET</span>
-  <span class="endpoint-path">/v4.3.0/observation/phenotype/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method put">PUT</span>
-  <span class="endpoint-path">/v4.3.0/observation/phenotype/{id}/</span>
-</div>
-<div class="api-endpoint">
-  <span class="http-method delete">DELETE</span>
   <span class="endpoint-path">/v4.3.0/observation/phenotype/{id}/</span>
 </div>
 
@@ -50,190 +42,93 @@ This sub-resource represents **phenotypes automatically extracted** from clinica
 | `component[code="count_concept"]` | integer | ❌ No | Optional | Concept occurrence count |
 | `component[code="count_concept_str_found"]` | integer | ❌ No | Optional | String fragment occurrence count |
 
-## Create a Phenotype
+## Search Parameters
+
+No filter parameters are available. Use `_count` and `page` for pagination.
+
+!!! info "Public endpoint"
+    This endpoint does not require authentication.
+
+## List Phenotypes
 
 === "curl"
     ```bash
-    curl -u username:password -X POST {API_URL}/v4.3.0/observation/phenotype/ \
-      -H "Content-Type: application/json" \
-      -d '{
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [{
-            "code": "I10",
-            "display": "Essential hypertension"
-          }]
-        },
-        "subject": {"reference": "Patient/1"},
-        "derivedFrom": [{"reference": "DocumentReference/10"}],
-        "valueString": "essential hypertension",
-        "component": [
-          {
-            "code": {"coding": [{"code": "phenotype"}]},
-            "valueInteger": 1
-          },
-          {
-            "code": {"coding": [{"code": "semantic_type"}]},
-            "valueString": "Disease"
-          },
-          {
-            "code": {"coding": [{"code": "tfidf_code_document"}]},
-            "valueQuantity": {"value": 0.85}
-          },
-          {
-            "code": {"coding": [{"code": "count_concept"}]},
-            "valueInteger": 2
-          },
-          {
-            "code": {"coding": [{"code": "count_concept_str_found"}]},
-            "valueInteger": 1
-          }
-        ]
-        }'
+    curl -H "Authorization: Api-Key {API_KEY}" "{API_URL}/v4.3.0/observation/phenotype/?_count=50"
     ```
 
 === "Python"
     ```python
-    phenotype = {
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {
-          "coding": [{
-            "code": "I10",
-            "display": "Essential hypertension"
-          }]
-        },
-        "subject": {"reference": "Patient/1"},
-        "derivedFrom": [{"reference": "DocumentReference/10"}],
-    "valueString": "hypertension",
-    "component": [
-        {
-            "code": {"coding": [{"code": "phenotype"}]},
-            "valueInteger": 1
-        },
-        {
-            "code": {"coding": [{"code": "semantic_type"}]},
-            "valueString": "Disease"
-        },
-        {
-            "code": {"coding": [{"code": "tfidf_code_document"}]},
-            "valueQuantity": {"value": 0.85}
-        },
-        {
-            "code": {"coding": [{"code": "count_concept"}]},
-            "valueInteger": 2
-        },
-        {
-            "code": {"coding": [{"code": "count_concept_str_found"}]},
-            "valueInteger": 1
-        }
-    ]
-}    response = requests.post("{API_URL}/v4.3.0/observation/phenotype/", json=phenotype)
+    import requests
+    
+    # List all phenotypes with pagination
+    response = requests.get(f"{API_URL}/v4.3.0/observation/phenotype/?_count=50")
+    bundle = response.json()
+    
+    print(f"Total phenotypes: {bundle['total']}")
+    for entry in bundle.get('entry', []):
+        pheno = entry['resource']
+        print(f"\n📋 Phenotype ID: {pheno['id']}")
+        print(f"   Code: {pheno['code']['coding'][0]['code']}")
+        print(f"   Display: {pheno['code']['coding'][0]['display']}")
+        print(f"   Value: {pheno['valueString']}")
+        
+        # Retrieve components
+        for component in pheno.get('component', []):
+            comp_code = component['code'].get('text', component['code'].get('coding', [{}])[0].get('code', ''))
+            print(f"   {comp_code}: {component.get('valueString', component.get('valueDecimal', component.get('valueInteger')))}")
     ```
 
+## Retrieve a Phenotype
 
-**Examples:**
-- **Negation:** "No diabetes" → `negation: true`
-- **Hypothesis:** "Suspected heart attack" → `hypothesis: true`
-- **Family:** "Family history of cancer" → `family: true`
+=== "curl"
+    ```bash
+    curl -H "Authorization: Api-Key {API_KEY}" {API_URL}/v4.3.0/observation/phenotype/1/
+    ```
 
-## Use Cases
+## Medical Context Fields
 
-### Complete Document Extraction
+Phenotype observations capture medical context through their `component[]` array and `valueString`:
 
-```python
-# Document: "The patient has hypertension and chest pain."
-document_id = 10
-patient_id = 24
+### Negation
 
-phenotypes = [
-    {
-        "code": "I10",
-        "display": "Essential hypertension",
-        "valueString": "hypertension",
-        "semantic_type": "Disease",
-        "tfidf": 0.85,
-        "count": 2,
-        "count_str_found": 1
-    },
-    {
-        "code": "R07.9",
-        "display": "Chest pain, unspecified",
-        "valueString": "chest pain",
-        "semantic_type": "Symptom",
-        "tfidf": 0.92,
-        "count": 1,
-        "count_str_found": 1
-    }
-]
+> "**No known diabetes**"
 
-for p in phenotypes:
-    requests.post("{API_URL}/v4.3.0/observation/phenotype/", json={
-        "resourceType": "Observation",
-        "status": "final",
-        "code": {"coding": [{"code": p["code"], "display": p["display"]}]},
-        "subject": {"reference": f"Patient/{patient_id}"},
-        "derivedFrom": [{"reference": f"DocumentReference/{document_id}"}],
-        "valueString": p["valueString"],
-        "component": [
-            {
-                "code": {"coding": [{"code": "phenotype"}]},
-                "valueInteger": 1
-            },
-            {
-                "code": {"coding": [{"code": "semantic_type"}]},
-                "valueString": p["semantic_type"]
-            },
-            {
-                "code": {"coding": [{"code": "tfidf_code_document"}]},
-                "valueQuantity": {"value": p["tfidf"]}
-            },
-            {
-                "code": {"coding": [{"code": "count_concept"}]},
-                "valueInteger": p["count"]
-            },
-            {
-                "code": {"coding": [{"code": "count_concept_str_found"}]},
-                "valueInteger": p["count_str_found"]
-            }
-        ]
-    })
+```json
+{
+  "valueString": "no diabetes",
+  "component": [
+    {"code": {"text": "phenotype"}, "valueString": "no diabetes"},
+    {"code": {"text": "semantic_type"}, "valueString": "DISEASE_OR_SYNDROME"}
+  ]
+}
 ```
 
-### Phenotype with Semantic Type and Relevance
+### Hypothesis
 
-```python
-# Create a phenotype with TF-IDF score indicating relevance
-phenotype = {
-    "resourceType": "Observation",
-    "status": "final",
-    "code": {
-        "coding": [{
-            "code": "J06.9",
-            "display": "Acute upper respiratory infection, unspecified"
-        }]
-    },
-    "subject": {"reference": "Patient/24"},
-    "derivedFrom": [{"reference": "DocumentReference/15"}],
-    "valueString": "upper respiratory infection",
-    "component": [
-        {
-            "code": {"coding": [{"code": "semantic_type"}]},
-            "valueString": "Disease"
-        },
-        {
-            "code": {"coding": [{"code": "tfidf_code_document"}]},
-            "valueQuantity": {"value": 0.78}
-        },
-        {
-            "code": {"coding": [{"code": "count_concept"}]},
-            "valueInteger": 1
-        }
-    ]
+> "**Suspected unstable angina**"
+
+```json
+{
+  "valueString": "suspected unstable angina",
+  "component": [
+    {"code": {"text": "phenotype"}, "valueString": "suspected unstable angina"},
+    {"code": {"text": "semantic_type"}, "valueString": "DISEASE_OR_SYNDROME"}
+  ]
 }
+```
 
-response = requests.post("{API_URL}/v4.3.0/observation/phenotype/", json=phenotype)
+### Family History
+
+> "**Family history** of coronary disease"
+
+```json
+{
+  "valueString": "family history of coronary disease",
+  "component": [
+    {"code": {"text": "phenotype"}, "valueString": "family history of coronary disease"},
+    {"code": {"text": "semantic_type"}, "valueString": "DISEASE_OR_SYNDROME"}
+  ]
+}
 ```
 
 ## Related Resources
