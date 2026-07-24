@@ -43,9 +43,8 @@ An intra-hospital transfer with `partOf` pointing to a Stay.
 | `subject` | Reference | ✅ Yes | Related patient |
 | `period.start` | dateTime | ✅ Yes | Admission date/time |
 | `period.end` | dateTime | No | Discharge date/time |
-| `serviceProvider` | Reference | No | Responsible organization |
+| `serviceProvider` | Reference | No | Unit/Department where the movement takes place (`Organization/unit-{id}` or `Organization/department-{id}`) |
 | `partOf` | Reference | No | Parent Stay (for Movement only) |
-| `location[]` | BackboneElement | No | Location(s) |
 
 ## Search Parameters
 
@@ -139,7 +138,7 @@ GET /v4.3.0/encounter/789/
 ## Related Resources
 
 - [Patient](patient.md) - Via `subject`
-- [Organization](organization.md) - Via `serviceProvider` and `location`
+- [Organization](organization.md) - Via `serviceProvider`
 - [DocumentReference](documentreference.md) - Stay documents
 
 <div class="quick-links">
